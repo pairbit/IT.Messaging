@@ -1,5 +1,5 @@
-# IT.Encoding
-[![NuGet version (IT.Encoding)](https://img.shields.io/nuget/v/IT.Encoding.svg)](https://www.nuget.org/packages/IT.Encoding)
-[![NuGet pre version (IT.Encoding)](https://img.shields.io/nuget/vpre/IT.Encoding.svg)](https://www.nuget.org/packages/IT.Encoding)
+# IT.Messaging.Redis
+[![NuGet version (IT.Messaging.Redis)](https://img.shields.io/nuget/v/IT.Messaging.Redis.svg)](https://www.nuget.org/packages/IT.Messaging.Redis)
+[![NuGet pre version (IT.Messaging.Redis)](https://img.shields.io/nuget/vpre/IT.Messaging.Redis.svg)](https://www.nuget.org/packages/IT.Messaging.Redis)
 
-Interfaces of encoding
+Implementation of messaging via StackExchange.Redis
