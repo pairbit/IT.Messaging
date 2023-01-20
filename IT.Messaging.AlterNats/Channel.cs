@@ -16,17 +16,17 @@
 
 //    #region IAsyncPublisher
 
-//    public async Task PublishAsync<T>(String channel, T message) => await _connection.PublishAsync(channel, message).AsTask();
+//    public async Task PublishAsync<T>(string channel, T message) => await _connection.PublishAsync(channel, message).AsTask();
 
-//    public async Task PublishAsync(String channel, ReadOnlyMemory<Byte> message) => await _connection.PublishAsync(channel, message).AsTask();
+//    public async Task PublishAsync(string channel, ReadOnlyMemory<Byte> message) => await _connection.PublishAsync(channel, message).AsTask();
 
 //    #endregion IAsyncPublisher
 
 //    #region IPublisher
 
-//    public void Publish<T>(String channel, T message) => _connection.PostPublish(channel, message);
+//    public void Publish<T>(string channel, T message) => _connection.PostPublish(channel, message);
 
-//    public void Publish(String channel, ReadOnlyMemory<Byte> message) => _connection.PostPublish(channel, message);
+//    public void Publish(string channel, ReadOnlyMemory<byte> message) => _connection.PostPublish(channel, message);
 
 //    #endregion IPublisher
 

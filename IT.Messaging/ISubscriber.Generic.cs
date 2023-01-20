@@ -4,5 +4,5 @@ namespace IT.Messaging;
 
 public interface ISubscriber<T> : IAsyncSubscriber<T>, IUnsubscriber
 {
-    void Subscribe(String channel, Action<String, T> handler);
+    void Subscribe(Action<T, string?> handler, string? channel = null);
 }

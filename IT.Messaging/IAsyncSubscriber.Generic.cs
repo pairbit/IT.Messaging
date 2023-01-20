@@ -5,5 +5,5 @@ namespace IT.Messaging;
 
 public interface IAsyncSubscriber<T> : IAsyncUnsubscriber
 {
-    Task SubscribeAsync(String channel, Action<String, T> handler);
+    Task SubscribeAsync(Action<T, string?> handler, string? channel = null);
 }

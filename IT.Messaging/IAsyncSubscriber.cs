@@ -3,9 +3,7 @@ using System.Threading.Tasks;
 
 namespace IT.Messaging;
 
-public interface IAsyncSubscriber : IAsyncUnsubscriber
+public interface IAsyncSubscriber : IAsyncMemorySubscriber
 {
-    Task SubscribeAsync<T>(String channel, Action<String, T> handler);
-
-    Task SubscribeAsync(String channel, Action<String, ReadOnlyMemory<Byte>> handler);
+    Task SubscribeAsync<T>(Action<T, string?> handler, string? channel = null);
 }

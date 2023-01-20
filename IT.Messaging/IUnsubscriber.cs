@@ -1,10 +1,8 @@
-﻿using System;
+﻿namespace IT.Messaging;
 
-namespace IT.Messaging;
-
-public interface IUnsubscriber
+public interface IUnsubscriber : IAsyncUnsubscriber
 {
     void UnsubscribeAll();
 
-    void Unsubscribe(String channel);
+    void Unsubscribe(string channel);
 }

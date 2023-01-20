@@ -2,9 +2,7 @@
 
 namespace IT.Messaging;
 
-public interface ISubscriber : IAsyncSubscriber, IUnsubscriber
+public interface ISubscriber : IMemorySubscriber
 {
-    void Subscribe<T>(String channel, Action<String, T> handler);
-
-    void Subscribe(String channel, Action<String, ReadOnlyMemory<Byte>> handler);
+    void Subscribe<T>(Action<T, string?> handler, string? channel = null);
 }

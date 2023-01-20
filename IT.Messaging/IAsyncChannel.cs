@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace IT.Messaging;
+﻿namespace IT.Messaging;
 
 public interface IAsyncChannel : IAsyncPublisher, IAsyncSubscriber
 {

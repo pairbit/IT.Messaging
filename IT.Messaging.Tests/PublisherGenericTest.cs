@@ -15,12 +15,19 @@ public class PublisherGenericTest
     {
         var guid = Guid.NewGuid();
 
-        _channel.Subscribe("POIB-*", (channel, guid) =>
+        _channel.Subscribe((guid, channel) =>
         {
-            Console.WriteLine($"[{channel}] -> {guid}");
+            Console.WriteLine(guid);
         });
 
-        _channel.Publish("POIB-hash", guid);
+        _channel.Publish(guid);
+
+        _channel.Subscribe((guid, channel) =>
+        {
+            Console.WriteLine($"[{channel}] -> {guid}");
+        }, "POIB-*");
+
+        _channel.Publish(guid, "POIB-*");
 
         Assert.Pass();
     }

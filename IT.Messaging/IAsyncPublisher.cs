@@ -1,11 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace IT.Messaging;
 
-public interface IAsyncPublisher
+public interface IAsyncPublisher : IAsyncMemoryPublisher
 {
-    Task PublishAsync<T>(String channel, T message);
-
-    Task PublishAsync(String channel, ReadOnlyMemory<Byte> message);
+    Task<long> PublishAsync<T>(T message, string? channel = null);
 }

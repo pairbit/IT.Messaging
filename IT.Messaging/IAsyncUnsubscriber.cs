@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace IT.Messaging;
 
@@ -7,5 +6,5 @@ public interface IAsyncUnsubscriber
 {
     Task UnsubscribeAllAsync();
 
-    Task UnsubscribeAsync(String channel);
+    Task UnsubscribeAsync(string channel);
 }

@@ -1,10 +1,6 @@
-﻿using System;
+﻿namespace IT.Messaging;
 
-namespace IT.Messaging;
-
-public interface IPublisher : IAsyncPublisher
+public interface IPublisher : IAsyncPublisher, IMemoryPublisher
 {
-    void Publish<T>(String channel, T message);
-
-    void Publish(String channel, ReadOnlyMemory<Byte> message);
+    long Publish<T>(T message, string? channel = null);
 }
