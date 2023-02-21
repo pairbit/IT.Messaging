@@ -15,7 +15,7 @@ public class PublisherTest
     {
         var guid = Guid.NewGuid();
 
-        _channel.Subscribe<Guid>((guid, channel) =>
+        _channel.Subscribe((Guid[] guid, string? channel) =>
         {
             Console.WriteLine($"[{channel}] -> {guid}");
         }, "POIB-*");

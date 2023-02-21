@@ -23,7 +23,7 @@ public class PubSubPublisher : IPublisher
         _encoding = encoding ?? Encoding.UTF8;
     }
 
-    public Boolean IsConnected(string? channel = null) => _subscriber.IsConnected(channel is not null ? (RedisChannel)channel : default);
+    //public Boolean IsConnected(string? channel = null) => _subscriber.IsConnected(channel is not null ? (RedisChannel)channel : default);
 
     public Task<long> PublishAsync(ReadOnlyMemory<byte> message, string? channel)
         => _subscriber.PublishAsync(channel == null ? default : new RedisChannel(_encoding.GetBytes(channel), Mode), message);

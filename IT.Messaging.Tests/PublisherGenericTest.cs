@@ -15,14 +15,14 @@ public class PublisherGenericTest
     {
         var guid = Guid.NewGuid();
 
-        _channel.Subscribe((guid, channel) =>
+        _channel.Subscribe((Guid guid, string? channel) =>
         {
             Console.WriteLine(guid);
         });
 
         _channel.Publish(guid);
 
-        _channel.Subscribe((guid, channel) =>
+        _channel.Subscribe((Guid guid, string? channel) =>
         {
             Console.WriteLine($"[{channel}] -> {guid}");
         }, "POIB-*");
