@@ -5,24 +5,21 @@ using System.Threading.Tasks;
 
 namespace IT.Messaging.Redis;
 
-public abstract class PubSubChannel
+public class PubSubPublisher : IPublisher
 {
     private const RedisChannel.PatternMode Mode = RedisChannel.PatternMode.Auto;
     protected readonly RedisChannel ChannelDefault = "*";
     protected readonly Encoding _encoding;
     protected readonly StackExchange.Redis.ISubscriber _subscriber;
     protected readonly IRedisValueSerializer _serializer;
-    protected readonly IRedisValueDeserializer _deserializer;
 
-    public PubSubChannel(
+    public PubSubPublisher(
         StackExchange.Redis.ISubscriber subscriber,
         IRedisValueSerializer serializer,
-        IRedisValueDeserializer deserializer,
         Encoding? encoding = null)
     {
         _subscriber = subscriber;
         _serializer = serializer;
-        _deserializer = deserializer;
         _encoding = encoding ?? Encoding.UTF8;
     }
 
@@ -31,14 +28,20 @@ public abstract class PubSubChannel
     public Task<long> PublishAsync(ReadOnlyMemory<byte> message, string? channel)
         => _subscriber.PublishAsync(channel == null ? default : new RedisChannel(_encoding.GetBytes(channel), Mode), message);
 
+    public Task<long> PublishAsync(ReadOnlyMemory<byte>[] messages, string? channel) => throw new NotSupportedException();
+
     public Task<long> PublishAsync<T>(T message, string? channel)
     {
         _serializer.Serialize(message, out var redisValue);
         return _subscriber.PublishAsync(channel == null ? default : new RedisChannel(_encoding.GetBytes(channel), Mode), redisValue);
     }
 
+    public Task<long> PublishAsync<T>(T[] messages, string? channel) => throw new NotSupportedException();
+
     public long Publish(ReadOnlyMemory<byte> message, string? channel)
         => _subscriber.Publish(channel == null ? default : new RedisChannel(_encoding.GetBytes(channel), Mode), message);
+
+    public long Publish(ReadOnlyMemory<byte>[] messages, string? channel) => throw new NotSupportedException();
 
     public long Publish<T>(T message, string? channel)
     {
@@ -46,11 +49,5 @@ public abstract class PubSubChannel
         return _subscriber.Publish(channel == null ? default : new RedisChannel(_encoding.GetBytes(channel), Mode), redisValue);
     }
 
-    public Task UnsubscribeAllAsync() => _subscriber.UnsubscribeAllAsync();
-
-    public Task UnsubscribeAsync(string channel) => _subscriber.UnsubscribeAsync(channel);
-
-    public void UnsubscribeAll() => _subscriber.UnsubscribeAll();
-
-    public void Unsubscribe(string channel) => _subscriber.Unsubscribe(channel);
+    public long Publish<T>(T[] messages, string? channel) => throw new NotSupportedException();
 }

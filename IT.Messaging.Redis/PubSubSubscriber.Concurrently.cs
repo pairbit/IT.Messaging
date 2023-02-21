@@ -3,12 +3,11 @@ using System.Threading.Tasks;
 
 namespace IT.Messaging.Redis;
 
-public class ConcurrentlyPubSubChannel : PubSubChannel, IChannel
+public class ConcurrentlyPubSubSubscriber : PubSubSubscriber, ISubscriber
 {
-    public ConcurrentlyPubSubChannel(
+    public ConcurrentlyPubSubSubscriber(
         StackExchange.Redis.ISubscriber subscriber,
-        IRedisValueSerializer serializer,
-        IRedisValueDeserializer deserializer) : base(subscriber, serializer, deserializer)
+        IRedisValueDeserializer deserializer) : base(subscriber, deserializer)
     {
 
     }
