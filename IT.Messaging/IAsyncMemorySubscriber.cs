@@ -8,4 +8,6 @@ public interface IAsyncMemorySubscriber : IAsyncUnsubscriber
     Task SubscribeAsync(Action<ReadOnlyMemory<byte>, string?> handler, string? channel = null);
 
     Task SubscribeAsync(Action<ReadOnlyMemory<byte>[], string?> handler, string? channel = null);
+
+    //Task SubscribeAsync(Action<System.Buffers.ReadOnlySequence<byte>, string?> handler, string? channel = null);
 }

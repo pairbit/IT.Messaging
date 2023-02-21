@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace IT.Messaging.Redis;
 
-public class PubSubSubscriber
+public abstract class PubSubSubscriber
 {
     protected readonly RedisChannel ChannelDefault = "*";
     protected readonly StackExchange.Redis.ISubscriber _subscriber;
