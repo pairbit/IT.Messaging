@@ -100,9 +100,9 @@ public class PublisherTest
 
         var type = arr[^1];
 
-        if (type == 1) verifyTransformSignature(guid, queue);
+        if (type == 1) prepareSign(guid, queue);
         if (type == 2) enhanceSign(guid, queue);
-        if (type == 3) cleanRequest(guid, queue);
+        if (type == 3) generateView(guid, queue);
     }
 
     private void enhanceSign(Guid guid, string? queue) { }

@@ -1,4 +1,4 @@
-﻿namespace IT.Messaging;
+﻿namespace IT.Messaging.Generic;
 
 public interface IPublisher<T> : IAsyncPublisher<T>
 {

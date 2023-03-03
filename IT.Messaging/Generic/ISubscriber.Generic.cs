@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IT.Messaging;
+namespace IT.Messaging.Generic;
 
 public interface ISubscriber<T> : IAsyncSubscriber<T>, IUnsubscriber
 {

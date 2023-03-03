@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace IT.Messaging;
+namespace IT.Messaging.Generic;
 
 public interface IAsyncPublisher<T>
 {

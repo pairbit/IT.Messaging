@@ -1,3 +1,5 @@
+using IT.Messaging.Generic;
+
 namespace IT.Messaging.Tests;
 
 public class PublisherGenericTest

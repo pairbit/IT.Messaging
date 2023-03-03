@@ -1,6 +1,6 @@
 ﻿namespace IT.Messaging;
 
-public interface IAsyncChannel : IAsyncPublisher, IAsyncSubscriber
+public interface IAsyncChannel : IAsyncMemoryChannel, IAsyncPublisher, IAsyncSubscriber
 {
-    //Boolean IsConnected(String? channel = null);
+
 }

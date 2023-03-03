@@ -1,6 +1,6 @@
 ﻿namespace IT.Messaging;
 
-public interface IChannel : IAsyncChannel, IPublisher, ISubscriber
+public interface IChannel : IAsyncChannel, IMemoryChannel, IPublisher, ISubscriber
 {
 
 }
