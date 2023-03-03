@@ -6,5 +6,5 @@ public interface IAsyncUnsubscriber
 {
     Task UnsubscribeAllAsync();
 
-    Task UnsubscribeAsync(string channel);
+    Task UnsubscribeAsync(string key);
 }

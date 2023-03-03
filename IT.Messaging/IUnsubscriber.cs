@@ -4,5 +4,5 @@ public interface IUnsubscriber : IAsyncUnsubscriber
 {
     void UnsubscribeAll();
 
-    void Unsubscribe(string channel);
+    void Unsubscribe(string key);
 }
