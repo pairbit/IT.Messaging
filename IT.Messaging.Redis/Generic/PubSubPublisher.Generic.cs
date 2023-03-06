@@ -1,23 +1,30 @@
-﻿using StackExchange.Redis;
+﻿using IT.Messaging.Generic;
+using StackExchange.Redis;
 using System;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IT.Messaging.Redis;
+namespace IT.Messaging.Redis.Generic;
 
-public class PubSubPublisher : PubSubMemoryPublisher, IPublisher
+public class PubSubPublisher<T> : IPublisher<T>
 {
-    protected readonly IRedisValueSerializer _serializer;
+    private const RedisChannel.PatternMode Mode = RedisChannel.PatternMode.Auto;
+    protected readonly RedisChannel ChannelDefault = "*";
+    protected readonly StackExchange.Redis.ISubscriber _subscriber;
+    protected readonly IRedisValueSerializer<T> _serializer;
+    protected readonly Encoding _encoding;
 
     public PubSubPublisher(
         StackExchange.Redis.ISubscriber subscriber,
-        IRedisValueSerializer serializer,
-        Encoding? encoding = null) : base(subscriber, encoding)
+        IRedisValueSerializer<T> serializer,
+        Encoding? encoding = null)
     {
+        _subscriber = subscriber ?? throw new ArgumentNullException(nameof(subscriber));
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+        _encoding = encoding ?? Encoding.UTF8;
     }
 
-    public long Publish<T>(T message, string? key = null)
+    public long Publish(T message, string? key = null)
     {
         try
         {
@@ -29,7 +36,7 @@ public class PubSubPublisher : PubSubMemoryPublisher, IPublisher
         }
     }
 
-    public long Publish<T>(T[] messages, string? key = null)
+    public long Publish(T[] messages, string? key = null)
     {
         try
         {
@@ -41,7 +48,7 @@ public class PubSubPublisher : PubSubMemoryPublisher, IPublisher
         }
     }
 
-    public Task<long> PublishAsync<T>(T message, string? key = null)
+    public Task<long> PublishAsync(T message, string? key = null)
     {
         try
         {
@@ -53,7 +60,7 @@ public class PubSubPublisher : PubSubMemoryPublisher, IPublisher
         }
     }
 
-    public Task<long> PublishAsync<T>(T[] messages, string? key = null)
+    public Task<long> PublishAsync(T[] messages, string? key = null)
     {
         try
         {
@@ -64,4 +71,6 @@ public class PubSubPublisher : PubSubMemoryPublisher, IPublisher
             throw new MessagingException(null, ex);
         }
     }
+
+    protected RedisChannel GetChannel(string? key) => key == null ? default : new RedisChannel(_encoding.GetBytes(key), Mode);
 }
