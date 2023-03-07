@@ -1,5 +1,3 @@
-using Newtonsoft.Json.Linq;
-
 namespace IT.Messaging.Tests;
 
 public class PublisherTest
