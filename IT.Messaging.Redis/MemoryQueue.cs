@@ -296,13 +296,9 @@ public class MemoryQueue : IMemoryQueue
 
     #region IMemorySubscriber
 
-    public void Subscribe(Action<ReadOnlyMemory<byte>, string?> handler, string? key = null) => _subscriber.Subscribe(handler, key);
+    public void Subscribe(MemoryHandler? handler, MemoryBatchHandler? batchHandler = null, string? key = null) => _subscriber.Subscribe(handler, batchHandler, key);
 
-    public void Subscribe(Action<ReadOnlyMemory<byte>[], string?> handler, string? key = null) => _subscriber.Subscribe(handler, key);
-
-    public Task SubscribeAsync(Action<ReadOnlyMemory<byte>, string?> handler, string? key = null) => _subscriber.SubscribeAsync(handler, key);
-
-    public Task SubscribeAsync(Action<ReadOnlyMemory<byte>[], string?> handler, string? key = null) => _subscriber.SubscribeAsync(handler, key);
+    public Task SubscribeAsync(AsyncMemoryHandler? handler, AsyncMemoryBatchHandler? batchHandler = null, string? key = null) => _subscriber.SubscribeAsync(handler, batchHandler, key);
 
     public void Unsubscribe(string key) => _subscriber.Unsubscribe(key);
 

@@ -35,7 +35,7 @@ public class PublisherTest
         //_channel.Bind("eb.*", "eb");
 
         _channel.Subscribe<Guid>(processDefault);
-        _channel.Subscribe<Guid>(processDefault, "eb");
+        _channel.Subscribe<Guid>(processDefault, key: "eb");
 
         Publish(_channel);
 
@@ -53,9 +53,9 @@ public class PublisherTest
         //_channel.Bind("*.generate-view.*", "generate-view");
 
         _channel.Subscribe<Guid>(processDefault);
-        _channel.Subscribe<Guid>(enhanceSign, "enhance");
-        _channel.Subscribe<Guid>(prepareSign, "prepare");
-        _channel.Subscribe<Guid>(generateView, "generate-view");
+        _channel.Subscribe<Guid>(enhanceSign, key: "enhance");
+        _channel.Subscribe<Guid>(prepareSign, key: "prepare");
+        _channel.Subscribe<Guid>(generateView, key: "generate-view");
 
         Publish(_channel);
 
@@ -72,8 +72,8 @@ public class PublisherTest
         //_channel.Bind("eb.*", "eb");
 
         _channel.Subscribe<Guid>(processDefault);
-        _channel.Subscribe<Guid>(processDefault, "eb");
-        _channel.Subscribe<Guid>(processDefault, "big");
+        _channel.Subscribe<Guid>(processDefault, key: "eb");
+        _channel.Subscribe<Guid>(processDefault, key: "big");
 
         Publish(_channel);
 

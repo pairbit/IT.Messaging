@@ -27,7 +27,7 @@ public class PublisherGenericTest
         _channel.Subscribe((Guid guid, string? channel) =>
         {
             Console.WriteLine($"[{channel}] -> {guid}");
-        }, "POIB-*");
+        }, key: "POIB-*");
 
         _channel.Publish(guid, "POIB-*");
 

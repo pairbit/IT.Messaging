@@ -142,13 +142,9 @@ public class Queue : MemoryQueue, IQueue
 
     #region ISubscriber
 
-    public void Subscribe<T>(Action<T, string?> handler, string? key = null) => _subscriber.Subscribe(handler, key);
+    public void Subscribe<T>(Handler<T>? handler, BatchHandler<T>? batchHandler = null, string? key = null) => _subscriber.Subscribe(handler, batchHandler, key);
 
-    public void Subscribe<T>(Action<T[], string?> handler, string? key = null) => _subscriber.Subscribe(handler, key);
-
-    public Task SubscribeAsync<T>(Action<T, string?> handler, string? key = null) => _subscriber.SubscribeAsync(handler, key);
-
-    public Task SubscribeAsync<T>(Action<T[], string?> handler, string? key = null) => _subscriber.SubscribeAsync(handler, key);
+    public Task SubscribeAsync<T>(AsyncHandler<T>? handler, AsyncBatchHandler<T>? batchHandler = null, string? key = null) => _subscriber.SubscribeAsync(handler, batchHandler, key);
 
     #endregion ISubscriber
 }

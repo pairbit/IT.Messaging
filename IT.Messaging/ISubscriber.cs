@@ -1,10 +1,6 @@
-﻿using System;
-
-namespace IT.Messaging;
+﻿namespace IT.Messaging;
 
 public interface ISubscriber : IAsyncSubscriber, IMemorySubscriber
 {
-    void Subscribe<T>(Action<T, string?> handler, string? key = null);
-
-    void Subscribe<T>(Action<T[], string?> handler, string? key = null);
+    void Subscribe<T>(Handler<T>? handler, BatchHandler<T>? batchHandler = null, string? key = null);
 }
