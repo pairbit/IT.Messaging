@@ -108,6 +108,72 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
+    public bool Exists(string? queue = null)
+    {
+        try
+        {
+            return _db.KeyExists(GetRedisKey(queue));
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public long ExistsAll(string[]? queues = null)
+    {
+        if (queues == null) throw new ArgumentNullException(nameof(queues));
+
+        var keys = new RedisKey[queues.Length];
+
+        for (int i = 0; i < keys.Length; i++)
+        {
+            keys[i] = GetRedisKey(queues[i]);
+        }
+
+        try
+        {
+            return _db.KeyExists(keys);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public Task<long> ExistsAllAsync(string[]? queues = null)
+    {
+        if (queues == null) throw new ArgumentNullException(nameof(queues));
+
+        var keys = new RedisKey[queues.Length];
+
+        for (int i = 0; i < keys.Length; i++)
+        {
+            keys[i] = GetRedisKey(queues[i]);
+        }
+
+        try
+        {
+            return _db.KeyExistsAsync(keys);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public Task<bool> ExistsAsync(string? queue = null)
+    {
+        try
+        {
+            return _db.KeyExistsAsync(GetRedisKey(queue));
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
     public long GetLength(string? queue = null)
     {
         try
