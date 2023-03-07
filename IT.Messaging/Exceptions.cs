@@ -11,3 +11,8 @@ public class HandlerRegisteredException : MessagingException
 {
     public HandlerRegisteredException(string? queue) : base($"Handler registered for queue '{queue}'") { }
 }
+
+public class HandlerNotRegisteredException : MessagingException
+{
+    public HandlerNotRegisteredException(string? queue) : base($"Handler not registered for queue '{queue}'") { }
+}

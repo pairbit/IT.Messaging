@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using IT.Messaging.Redis.Internal;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -10,14 +11,16 @@ public class MemoryQueueSubscriber : IMemorySubscriber
 {
     private const string QueueDefault = "default";
     private readonly IDatabase _db;
-    private List<string?> _queues = new();
-    private Func<string?, QueueSubscriberConfig> _getConfig;
-    private CancellationTokenSource _tokenSource;
+    private readonly Dictionary<string?, Tasks> _queues = new();
+    private readonly Func<string?, QueueSubscriberConfig> _getConfig;
+    private readonly CancellationTokenSource _tokenSource;
+    private readonly object _lock = new();
 
     public MemoryQueueSubscriber(IDatabase db, Func<string?, QueueSubscriberConfig> getConfig)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _getConfig = getConfig;
+        _tokenSource = new CancellationTokenSource();
     }
 
     public void Subscribe(MemoryHandler? handler, MemoryBatchHandler? batchHandler = null, string? queue = null)
@@ -26,39 +29,46 @@ public class MemoryQueueSubscriber : IMemorySubscriber
 
         var queues = _queues;
 
-        if (queues.Contains(queue)) throw new HandlerRegisteredException(queue);
+        if (queues.ContainsKey(queue)) throw new HandlerRegisteredException(queue);
 
-        queues.Add(queue);
-
-        var options = _getConfig(queue);
-        var delay = options.Delay;
-        var batchSize = options.BatchSize;
-
-        var tasks = new Task[options.Tasks];
-
-        if (batchHandler != null)
+        lock (_lock)
         {
-            if (handler != null)
+            if (queues.ContainsKey(queue)) throw new HandlerRegisteredException(queue);
+
+            var options = _getConfig(queue);
+            var delay = options.Delay;
+            var batchSize = options.BatchSize;
+
+            var tasks = new Task[options.Tasks];
+            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(_tokenSource.Token);
+            var token = tokenSource.Token;
+
+            if (batchHandler != null)
+            {
+                if (handler != null)
+                {
+                    for (int i = 0; i < tasks.Length; i++)
+                    {
+                        tasks[i] = ProcessAsync(queue, delay, token, handler, batchHandler, batchSize);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < tasks.Length; i++)
+                    {
+                        tasks[i] = ProcessAsync(queue, delay, token, batchHandler, batchSize);
+                    }
+                }
+            }
+            else if (handler != null)
             {
                 for (int i = 0; i < tasks.Length; i++)
                 {
-                    tasks[i] = ProcessAsync(queue, delay, handler, batchHandler, batchSize);
+                    tasks[i] = ProcessAsync(queue, delay, token, handler);
                 }
             }
-            else
-            {
-                for (int i = 0; i < tasks.Length; i++)
-                {
-                    tasks[i] = ProcessAsync(queue, delay, batchHandler, batchSize);
-                }
-            }
-        }
-        else if (handler != null)
-        {
-            for (int i = 0; i < tasks.Length; i++)
-            {
-                tasks[i] = ProcessAsync(queue, delay, handler);
-            }
+
+            queues.Add(queue, new Tasks(tasks, tokenSource));
         }
     }
 
@@ -68,39 +78,48 @@ public class MemoryQueueSubscriber : IMemorySubscriber
 
         var queues = _queues;
 
-        if (queues.Contains(queue)) throw new HandlerRegisteredException(queue);
+        if (queues.ContainsKey(queue)) throw new HandlerRegisteredException(queue);
 
-        queues.Add(queue);
-
-        var options = _getConfig(queue);
-        var delay = options.Delay;
-        var batchSize = options.BatchSize;
-
-        var tasks = new Task[options.Tasks];
-
-        if (batchHandler != null)
+        lock (_lock)
         {
-            if (handler != null)
+            if (queues.ContainsKey(queue)) throw new HandlerRegisteredException(queue);
+
+            var options = _getConfig(queue);
+            var delay = options.Delay;
+            var batchSize = options.BatchSize;
+
+            var tasks = new Task[options.Tasks];
+            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(_tokenSource.Token);
+            var token = tokenSource.Token;
+
+            if (batchHandler != null)
             {
-                for (int i = 0; i < tasks.Length; i++)
+                if (handler != null)
                 {
-                    tasks[i] = ProcessAsync(queue, delay, handler, batchHandler, batchSize);
+                    for (int i = 0; i < tasks.Length; i++)
+                    {
+                        tasks[i] = ProcessAsync(queue, delay, token, handler, batchHandler, batchSize);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < tasks.Length; i++)
+                    {
+                        tasks[i] = ProcessAsync(queue, delay, token, batchHandler, batchSize);
+                    }
                 }
             }
-            else
+            else if (handler != null)
             {
+                //if (batchSize > 1) _log.Warning
+
                 for (int i = 0; i < tasks.Length; i++)
                 {
-                    tasks[i] = ProcessAsync(queue, delay, batchHandler, batchSize);
+                    tasks[i] = ProcessAsync(queue, delay, token, handler);
                 }
             }
-        }
-        else if (handler != null)
-        {
-            for (int i = 0; i < tasks.Length; i++)
-            {
-                tasks[i] = ProcessAsync(queue, delay, handler);
-            }
+
+            queues.Add(queue, new Tasks(tasks, tokenSource));
         }
 
         return Task.CompletedTask;
@@ -108,29 +127,51 @@ public class MemoryQueueSubscriber : IMemorySubscriber
 
     public void Unsubscribe(string queue)
     {
-        throw new NotImplementedException();
+        if (!_queues.TryGetValue(queue, out var tasks)) throw new HandlerNotRegisteredException(queue);
+
+        try
+        {
+            tasks.TokenSource.Cancel();
+        }
+        finally
+        {
+            Task.WhenAll(tasks.Array).Wait();
+        }
     }
 
     public void UnsubscribeAll()
     {
-        throw new NotImplementedException();
+        _tokenSource.Cancel();
     }
 
     public Task UnsubscribeAllAsync()
     {
-        throw new NotImplementedException();
+        _tokenSource.Cancel();
+
+        return Task.CompletedTask;
     }
 
-    public Task UnsubscribeAsync(string queue)
+    public async Task UnsubscribeAsync(string queue)
     {
-        throw new NotImplementedException();
+        if (!_queues.TryGetValue(queue, out var tasks)) throw new HandlerNotRegisteredException(queue);
+
+        try
+        {
+            tasks.TokenSource.Cancel();
+        }
+        finally
+        {
+            await Task.WhenAll(tasks.Array).ConfigureAwait(false);
+            //await Task.WhenAny(Task.WhenAll(tasks.Array), Task.Delay(Timeout.Infinite, cancellationToken)).ConfigureAwait(false);
+
+            _queues.Remove(queue);
+        }
     }
 
-    private async Task ProcessAsync(string? queue, int delay, AsyncMemoryHandler handler)
+    private async Task ProcessAsync(string? queue, int delay, CancellationToken token, AsyncMemoryHandler handler)
     {
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
-        var token = _tokenSource.Token;
 
         while (!token.IsCancellationRequested)
         {
@@ -144,7 +185,7 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             {
                 try
                 {
-                    await handler(message, queue).ConfigureAwait(false);
+                    await handler(message, queue, token).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -154,11 +195,10 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         }
     }
 
-    private async Task ProcessAsync(string? queue, int delay, AsyncMemoryBatchHandler batchHandler, int batchSize)
+    private async Task ProcessAsync(string? queue, int delay, CancellationToken token, AsyncMemoryBatchHandler batchHandler, int batchSize)
     {
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
-        var token = _tokenSource.Token;
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
 
         while (!token.IsCancellationRequested)
@@ -180,7 +220,7 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             {
                 try
                 {
-                    await batchHandler(batch, queue).ConfigureAwait(false);
+                    await batchHandler(batch, queue, token).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -191,11 +231,10 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         }
     }
 
-    private async Task ProcessAsync(string? queue, int delay, AsyncMemoryHandler handler, AsyncMemoryBatchHandler batchHandler, int batchSize)
+    private async Task ProcessAsync(string? queue, int delay, CancellationToken token, AsyncMemoryHandler handler, AsyncMemoryBatchHandler batchHandler, int batchSize)
     {
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
-        var token = _tokenSource.Token;
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
 
         while (!token.IsCancellationRequested)
@@ -221,11 +260,11 @@ public class MemoryQueueSubscriber : IMemorySubscriber
                 {
                     if (len == 1)
                     {
-                        await handler(batch[0], queue).ConfigureAwait(false);
+                        await handler(batch[0], queue, token).ConfigureAwait(false);
                     }
                     else
                     {
-                        await batchHandler(batch, queue).ConfigureAwait(false);
+                        await batchHandler(batch, queue, token).ConfigureAwait(false);
                     }
                 }
                 finally
@@ -237,11 +276,10 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         }
     }
 
-    private async Task ProcessAsync(string? queue, int delay, MemoryHandler handler)
+    private async Task ProcessAsync(string? queue, int delay, CancellationToken token, MemoryHandler handler)
     {
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
-        var token = _tokenSource.Token;
 
         while (!token.IsCancellationRequested)
         {
@@ -255,7 +293,7 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             {
                 try
                 {
-                    handler(message, queue);
+                    handler(message, queue, token);
                 }
                 finally
                 {
@@ -265,11 +303,10 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         }
     }
 
-    private async Task ProcessAsync(string? queue, int delay, MemoryBatchHandler batchHandler, int batchSize)
+    private async Task ProcessAsync(string? queue, int delay, CancellationToken token, MemoryBatchHandler batchHandler, int batchSize)
     {
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
-        var token = _tokenSource.Token;
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
 
         while (!token.IsCancellationRequested)
@@ -291,7 +328,7 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             {
                 try
                 {
-                    batchHandler(batch, queue);
+                    batchHandler(batch, queue, token);
                 }
                 finally
                 {
@@ -302,11 +339,10 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         }
     }
 
-    private async Task ProcessAsync(string? queue, int delay, MemoryHandler handler, MemoryBatchHandler batchHandler, int batchSize)
+    private async Task ProcessAsync(string? queue, int delay, CancellationToken token, MemoryHandler handler, MemoryBatchHandler batchHandler, int batchSize)
     {
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
-        var token = _tokenSource.Token;
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
 
         while (!token.IsCancellationRequested)
@@ -332,11 +368,11 @@ public class MemoryQueueSubscriber : IMemorySubscriber
                 {
                     if (len == 1)
                     {
-                        handler(batch[0], queue);
+                        handler(batch[0], queue, token);
                     }
                     else
                     {
-                        batchHandler(batch, queue);
+                        batchHandler(batch, queue, token);
                     }
                 }
                 finally

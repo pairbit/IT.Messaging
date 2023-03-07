@@ -1,3 +1,5 @@
+using Newtonsoft.Json.Linq;
+
 namespace IT.Messaging.Tests;
 
 public class PublisherTest
@@ -94,20 +96,20 @@ public class PublisherTest
         publisher.Publish(new[] { Guid.NewGuid() }, "gmu.generate-view-pdf.big");
     }
 
-    private void processDefault(Guid guid, string? queue) 
+    private void processDefault(Guid guid, string? queue, CancellationToken token) 
     {
         var arr = guid.ToByteArray();
 
         var type = arr[^1];
 
-        if (type == 1) prepareSign(guid, queue);
-        if (type == 2) enhanceSign(guid, queue);
-        if (type == 3) generateView(guid, queue);
+        if (type == 1) prepareSign(guid, queue, token);
+        if (type == 2) enhanceSign(guid, queue, token);
+        if (type == 3) generateView(guid, queue, token);
     }
 
-    private void enhanceSign(Guid guid, string? queue) { }
+    private void enhanceSign(Guid guid, string? queue, CancellationToken token) { }
 
-    private void prepareSign(Guid guid, string? queue) { }
+    private void prepareSign(Guid guid, string? queue, CancellationToken token) { }
 
-    private void generateView(Guid guid, string? queue) { }
+    private void generateView(Guid guid, string? queue, CancellationToken token) { }
 }
