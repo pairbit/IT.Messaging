@@ -18,6 +18,8 @@ public class Worker : IHostedService
         await _channel.SubscribeAsync<Guid>(ProcessAsync, key: "q1");
 
         await _channel.SubscribeAsync<Guid>(ProcessAsync, ProcessAllAsync, key: "q1-multi");
+
+        await _channel.SubscribeAsync<Guid>(null, RollbackAllAsync, key: "q1-rollback");
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
@@ -55,5 +57,17 @@ public class Worker : IHostedService
         await _channel.PublishAsync(values, "q1-multi-res");
 
         return Batch.True;
+    }
+
+    private async Task<bool[]> RollbackAllAsync(IReadOnlyList<Guid> values, string? queue, CancellationToken token)
+    {
+        for (int i = 0; i < values.Count; i++)
+        {
+            Console.WriteLine($"Processing '{values[i]}' from queue '{queue}'");
+        }
+
+        await Task.Delay(TimeSpan.FromSeconds(10), token);
+
+        return Batch.False;
     }
 }

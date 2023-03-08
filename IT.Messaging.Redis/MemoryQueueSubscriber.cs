@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace IT.Messaging.Redis;
 
+internal delegate Task<RedisValue> AsyncDequeue(IDatabaseAsync db, RedisKey source, RedisKey destination);
+
 public class MemoryQueueSubscriber : IMemorySubscriber
 {
     private const string QueueDefault = "default";
@@ -15,6 +17,9 @@ public class MemoryQueueSubscriber : IMemorySubscriber
     private readonly Func<string?, QueueSubscriberConfig> _getConfig;
     private readonly CancellationTokenSource _tokenSource;
     private readonly object _lock = new();
+
+    private bool? haveMove;
+    private AsyncDequeue _dequeueAsync;
 
     public MemoryQueueSubscriber(IDatabase db, Func<string?, QueueSubscriberConfig> getConfig)
     {
@@ -30,6 +35,8 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queues = _queues;
 
         if (queues.ContainsKey(queue)) throw new HandlerRegisteredException(queue);
+
+        Init();
 
         lock (_lock)
         {
@@ -72,13 +79,15 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         }
     }
 
-    public Task SubscribeAsync(AsyncMemoryHandler? handler, AsyncMemoryBatchHandler? batchHandler = null, string? queue = null)
+    public async Task SubscribeAsync(AsyncMemoryHandler? handler, AsyncMemoryBatchHandler? batchHandler = null, string? queue = null)
     {
         if (handler == null && batchHandler == null) throw new ArgumentNullException(nameof(handler));
 
         var queues = _queues;
 
         if (queues.ContainsKey(queue)) throw new HandlerRegisteredException(queue);
+
+        await InitAsync();
 
         lock (_lock)
         {
@@ -121,8 +130,6 @@ public class MemoryQueueSubscriber : IMemorySubscriber
 
             queues.Add(queue, new Tasks(tasks, tokenSource));
         }
-
-        return Task.CompletedTask;
     }
 
     public void Unsubscribe(string queue)
@@ -173,10 +180,11 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
         var db = _db;
+        var dequeueAsync = _dequeueAsync;
 
         while (!token.IsCancellationRequested)
         {
-            var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+            var message = await dequeueAsync(db, queueKey, queueWorkingKey).ConfigureAwait(false);
 
             if (message.IsNull)
             {
@@ -208,12 +216,13 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queueWorkingKey = GetQueueWorkingKey(queue);
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
         var db = _db;
+        var dequeueAsync = _dequeueAsync;
 
         while (!token.IsCancellationRequested)
         {
             for (int i = 0; i < batchSize; i++)
             {
-                var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+                var message = await dequeueAsync(db, queueKey, queueWorkingKey).ConfigureAwait(false);
 
                 if (message.IsNull) break;
 
@@ -253,12 +262,13 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queueWorkingKey = GetQueueWorkingKey(queue);
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
         var db = _db;
+        var dequeueAsync = _dequeueAsync;
 
         while (!token.IsCancellationRequested)
         {
             for (int i = 0; i < batchSize; i++)
             {
-                var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+                var message = await dequeueAsync(db, queueKey, queueWorkingKey).ConfigureAwait(false);
 
                 if (message.IsNull) break;
 
@@ -304,7 +314,7 @@ public class MemoryQueueSubscriber : IMemorySubscriber
                     if (ReferenceEquals(status, Batch.True)) await db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
                     else if (ReferenceEquals(status, Batch.False)) await db.QueueRollbackAsync(queueWorkingKey, queueKey).ConfigureAwait(false);
                     else await db.QueueRollbackAsync(queueWorkingKey, queueKey, status).ConfigureAwait(false);
-                    
+
                     batch.Clear();
                 }
             }
@@ -316,10 +326,11 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
         var db = _db;
+        var dequeueAsync = _dequeueAsync;
 
         while (!token.IsCancellationRequested)
         {
-            var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+            var message = await dequeueAsync(db, queueKey, queueWorkingKey).ConfigureAwait(false);
 
             if (message.IsNull)
             {
@@ -351,12 +362,13 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queueWorkingKey = GetQueueWorkingKey(queue);
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
         var db = _db;
+        var dequeueAsync = _dequeueAsync;
 
         while (!token.IsCancellationRequested)
         {
             for (int i = 0; i < batchSize; i++)
             {
-                var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+                var message = await dequeueAsync(db, queueKey, queueWorkingKey).ConfigureAwait(false);
 
                 if (message.IsNull) break;
 
@@ -383,7 +395,7 @@ public class MemoryQueueSubscriber : IMemorySubscriber
                     if (ReferenceEquals(status, Batch.True)) await db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
                     else if (ReferenceEquals(status, Batch.False)) await db.QueueRollbackAsync(queueWorkingKey, queueKey).ConfigureAwait(false);
                     else await db.QueueRollbackAsync(queueWorkingKey, queueKey, status).ConfigureAwait(false);
-                    
+
                     batch.Clear();
                 }
             }
@@ -396,12 +408,13 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queueWorkingKey = GetQueueWorkingKey(queue);
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
         var db = _db;
+        var dequeueAsync = _dequeueAsync;
 
         while (!token.IsCancellationRequested)
         {
             for (int i = 0; i < batchSize; i++)
             {
-                var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+                var message = await dequeueAsync(db, queueKey, queueWorkingKey).ConfigureAwait(false);
 
                 if (message.IsNull) break;
 
@@ -452,6 +465,94 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             }
         }
     }
+
+    private void Init()
+    {
+        if (haveMove == null)
+        {
+            try
+            {
+                var source = GetQueueKey("5e2e8749395a46f7acd0e7f4a087e3ab-source");
+                var destination = GetQueueKey("5e2e8749395a46f7acd0e7f4a087e3ab-destination");
+
+                try
+                {
+                    _db.ListLeftPush(source, 1);
+                    _db.ListMove(source, destination, ListSide.Right, ListSide.Left);
+                    haveMove = true;
+                    _dequeueAsync = ListMoveAsync;
+                }
+                catch (RedisServerException ex)
+                {
+                    var message = ex.Message;
+                    if (message != null && message.Equals("ERR unknown command 'LMOVE'"))
+                    {
+                        haveMove = false;
+                        _dequeueAsync = ListRightPopLeftPushAsync;
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                finally
+                {
+                    _db.KeyDelete(new[] { source, destination });
+                }
+            }
+            catch (RedisException ex)
+            {
+                throw new MessagingException(null, ex);
+            }
+        }
+    }
+
+    private async Task InitAsync()
+    {
+        if (haveMove == null)
+        {
+            try
+            {
+                var source = GetQueueKey("5e2e8749395a46f7acd0e7f4a087e3ab-source");
+                var destination = GetQueueKey("5e2e8749395a46f7acd0e7f4a087e3ab-destination");
+
+                try
+                {
+                    await _db.ListLeftPushAsync(source, 1).ConfigureAwait(false);
+                    await _db.ListMoveAsync(source, destination, ListSide.Right, ListSide.Left).ConfigureAwait(false);
+                    haveMove = true;
+                    _dequeueAsync = ListMoveAsync;
+                }
+                catch (RedisServerException ex)
+                {
+                    var message = ex.Message;
+                    if (message != null && message.Equals("ERR unknown command 'LMOVE'"))
+                    {
+                        haveMove = false;
+                        _dequeueAsync = ListRightPopLeftPushAsync;
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                finally
+                {
+                    await _db.KeyDeleteAsync(new[] { source, destination }).ConfigureAwait(false);
+                }
+            }
+            catch (RedisException ex)
+            {
+                throw new MessagingException(null, ex);
+            }
+        }
+    }
+
+    private static Task<RedisValue> ListMoveAsync(IDatabaseAsync db, RedisKey source, RedisKey destination)
+        => db.ListMoveAsync(source, destination, ListSide.Right, ListSide.Left);
+
+    private static Task<RedisValue> ListRightPopLeftPushAsync(IDatabaseAsync db, RedisKey source, RedisKey destination)
+        => db.ListRightPopLeftPushAsync(source, destination);
 
     private RedisKey GetQueueKey(string? queue)
     {
