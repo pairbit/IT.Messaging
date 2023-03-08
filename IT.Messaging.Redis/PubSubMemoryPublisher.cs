@@ -1,6 +1,7 @@
 ﻿using StackExchange.Redis;
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,7 +34,7 @@ public class PubSubMemoryPublisher : IMemoryPublisher
         }
     }
 
-    public long Publish(ReadOnlyMemory<byte>[] messages, string? key = null)
+    public long Publish(IEnumerable<ReadOnlyMemory<byte>> messages, string? key = null)
     {
         //есть два способа публиковать пачку сообщений в канал:
         //1) если все сообщения одинаковой длинны, длина указывается в конфигурации и проверяется пеерд отправкой
@@ -59,7 +60,7 @@ public class PubSubMemoryPublisher : IMemoryPublisher
         }
     }
 
-    public Task<long> PublishAsync(ReadOnlyMemory<byte>[] messages, string? key = null)
+    public Task<long> PublishAsync(IEnumerable<ReadOnlyMemory<byte>> messages, string? key = null)
     {
         throw new NotImplementedException();
     }

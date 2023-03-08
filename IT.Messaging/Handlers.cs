@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 
 namespace IT.Messaging;
 
-public delegate Task AsyncMemoryHandler(ReadOnlyMemory<byte> message, string? queue, CancellationToken token);
-public delegate Task AsyncMemoryBatchHandler(IReadOnlyCollection<ReadOnlyMemory<byte>> messages, string? queue, CancellationToken token);
-//public delegate Task AsyncSequenceHandler(ReadOnlySequence<byte> messages, string? queue, CancellationToken token);
-public delegate Task AsyncHandler<T>(T message, string? queue, CancellationToken token);
-public delegate Task AsyncBatchHandler<T>(IReadOnlyCollection<T> messages, string? queue, CancellationToken token);
+public delegate Task<bool> AsyncMemoryHandler(ReadOnlyMemory<byte> message, string? queue, CancellationToken token);
+public delegate Task<bool[]> AsyncMemoryBatchHandler(IReadOnlyList<ReadOnlyMemory<byte>> messages, string? queue, CancellationToken token);
+//public delegate Task<bool[]> AsyncSequenceHandler(ReadOnlySequence<byte> messages, string? queue, CancellationToken token);
+public delegate Task<bool> AsyncHandler<T>(T message, string? queue, CancellationToken token);
+public delegate Task<bool[]> AsyncBatchHandler<T>(IReadOnlyList<T> messages, string? queue, CancellationToken token);
 
-public delegate void MemoryHandler(ReadOnlyMemory<byte> message, string? queue, CancellationToken token);
-public delegate void MemoryBatchHandler(IReadOnlyCollection<ReadOnlyMemory<byte>> messages, string? queue, CancellationToken token);//Batch
-//public delegate void SequenceHandler(ReadOnlySequence<byte> messages, string? queue, CancellationToken token);
-public delegate void Handler<T>(T message, string? queue, CancellationToken token);
-public delegate void BatchHandler<T>(IReadOnlyCollection<T> messages, string? queue, CancellationToken token);
+public delegate bool MemoryHandler(ReadOnlyMemory<byte> message, string? queue, CancellationToken token);
+public delegate bool[] MemoryBatchHandler(IReadOnlyList<ReadOnlyMemory<byte>> messages, string? queue, CancellationToken token);//Batch
+//public delegate bool[] SequenceHandler(ReadOnlySequence<byte> messages, string? queue, CancellationToken token);
+public delegate bool Handler<T>(T message, string? queue, CancellationToken token);
+public delegate bool[] BatchHandler<T>(IReadOnlyList<T> messages, string? queue, CancellationToken token);

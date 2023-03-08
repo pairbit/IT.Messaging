@@ -20,6 +20,7 @@ public class PublisherGenericTest
         _channel.Subscribe((Guid guid, string? channel, CancellationToken token) =>
         {
             Console.WriteLine(guid);
+            return true;
         });
 
         _channel.Publish(guid);
@@ -27,6 +28,7 @@ public class PublisherGenericTest
         _channel.Subscribe((Guid guid, string? channel, CancellationToken token) =>
         {
             Console.WriteLine($"[{channel}] -> {guid}");
+            return true;
         }, key: "POIB-*");
 
         _channel.Publish(guid, "POIB-*");

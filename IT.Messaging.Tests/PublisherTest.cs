@@ -94,20 +94,22 @@ public class PublisherTest
         publisher.Publish(new[] { Guid.NewGuid() }, "gmu.generate-view-pdf.big");
     }
 
-    private void processDefault(Guid guid, string? queue, CancellationToken token) 
+    private bool processDefault(Guid guid, string? queue, CancellationToken token) 
     {
         var arr = guid.ToByteArray();
 
         var type = arr[^1];
 
-        if (type == 1) prepareSign(guid, queue, token);
-        if (type == 2) enhanceSign(guid, queue, token);
-        if (type == 3) generateView(guid, queue, token);
+        if (type == 1) return prepareSign(guid, queue, token);
+        if (type == 2) return enhanceSign(guid, queue, token);
+        if (type == 3) return generateView(guid, queue, token);
+
+        throw new NotSupportedException();
     }
 
-    private void enhanceSign(Guid guid, string? queue, CancellationToken token) { }
+    private bool enhanceSign(Guid guid, string? queue, CancellationToken token) { return true; }
 
-    private void prepareSign(Guid guid, string? queue, CancellationToken token) { }
+    private bool prepareSign(Guid guid, string? queue, CancellationToken token) { return true; }
 
-    private void generateView(Guid guid, string? queue, CancellationToken token) { }
+    private bool generateView(Guid guid, string? queue, CancellationToken token) { return true; }
 }

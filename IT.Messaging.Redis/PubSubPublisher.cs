@@ -1,5 +1,6 @@
 ﻿using StackExchange.Redis;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,7 +30,7 @@ public class PubSubPublisher : PubSubMemoryPublisher, IPublisher
         }
     }
 
-    public long Publish<T>(T[] messages, string? key = null)
+    public long Publish<T>(IEnumerable<T> messages, string? key = null)
     {
         try
         {
@@ -53,7 +54,7 @@ public class PubSubPublisher : PubSubMemoryPublisher, IPublisher
         }
     }
 
-    public Task<long> PublishAsync<T>(T[] messages, string? key = null)
+    public Task<long> PublishAsync<T>(IEnumerable<T> messages, string? key = null)
     {
         try
         {
