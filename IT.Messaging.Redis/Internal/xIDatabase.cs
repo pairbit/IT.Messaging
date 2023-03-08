@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace IT.Messaging.Redis.Internal;
 
-internal static class xIDatabase
+public static class xIDatabase
 {
     private static readonly RedisValue LEFT = "LEFT";
     private static readonly RedisValue RIGHT = "RIGHT";
@@ -15,6 +15,11 @@ internal static class xIDatabase
     private static readonly RedisValue[] RIGHT_LEFT = new[] { RIGHT, LEFT };
     private static readonly RedisValue[] RIGHT_RIGHT = new[] { RIGHT, RIGHT };
 
+    public static long ListRightPopLeftPushAll(this IDatabase db, RedisKey sourceKey, RedisKey destinationKey)
+    {
+        return (long)db.ScriptEvaluate(Lua.ListRightPopLeftPushAll, new RedisKey[] { sourceKey, destinationKey });
+    }
+
     public static long ListMoveAll(this IDatabase db, RedisKey sourceKey, RedisKey destinationKey, ListSide sourceSide, ListSide destinationSide, CommandFlags flags = CommandFlags.None)
     {
         return (long)db.ScriptEvaluate(Lua.ListMoveAll, new RedisKey[] { sourceKey, destinationKey }, ToRedisValue(sourceSide, destinationSide), flags);
@@ -23,6 +28,12 @@ internal static class xIDatabase
     public static async Task<long> ListMoveAllAsync(this IDatabaseAsync db, RedisKey sourceKey, RedisKey destinationKey, ListSide sourceSide, ListSide destinationSide, CommandFlags flags = CommandFlags.None)
     {
         return (long)await db.ScriptEvaluateAsync(Lua.ListMoveAll, new RedisKey[] { sourceKey, destinationKey }, ToRedisValue(sourceSide, destinationSide), flags);
+    }
+
+    public static void QueueRollback(this IDatabase db, RedisKey sourceKey, RedisKey destinationKey)
+    {
+        //await db.ScriptEvaluateAsync(Lua.ListMoveAll, new RedisKey[] { sourceKey, destinationKey }, LEFT_RIGHT);
+        db.ScriptEvaluate(Lua.QueueRollback, new RedisKey[] { sourceKey, destinationKey });
     }
 
     public static Task QueueRollbackAsync(this IDatabaseAsync db, RedisKey sourceKey, RedisKey destinationKey)

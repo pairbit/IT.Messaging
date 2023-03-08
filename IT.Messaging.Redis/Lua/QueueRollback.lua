@@ -1,1 +1,1 @@
-﻿
+﻿while (redis.call('LMOVE', KEYS[1], KEYS[2], 'LEFT', 'RIGHT') ~= false) do end

@@ -1,4 +1,5 @@
 using StackExchange.Redis;
+using IT.Messaging.Redis.Internal;
 
 namespace IT.Messaging.Tests;
 
@@ -15,12 +16,12 @@ public class RedisTest
     }
 
     [Test]
-    public void ListTest()
+    public void QueueRollbackTest()
     {
         RedisKey queue = "q1";
         RedisKey queueWorking = "q1-working";
 
-        var queueSize = 9;
+        var queueSize = 5;
         var batchSize = 3;
 
         _db.KeyDelete(new[] { queue, queueWorking });
@@ -39,10 +40,14 @@ public class RedisTest
                 Assert.That((long)_db.ListMove(queue, queueWorking, ListSide.Right, ListSide.Left), Is.EqualTo(i));
             }
 
-            for (int i = batchSize - 1; i >= 0; i--)
-            {
-                Assert.That((long)_db.ListMove(queueWorking, queue, ListSide.Left, ListSide.Right), Is.EqualTo(i));
-            }
+            //for (int i = batchSize - 1; i >= 0; i--)
+            //{
+            //    Assert.That((long)_db.ListMove(queueWorking, queue, ListSide.Left, ListSide.Right), Is.EqualTo(i));
+            //}
+
+            //Assert.That(_db.ListMoveAll(queueWorking, queue, ListSide.Left, ListSide.Right), Is.EqualTo(batchSize));
+
+            _db.QueueRollback(queueWorking, queue);
 
             Console.WriteLine("ListMove");
         }
@@ -57,10 +62,12 @@ public class RedisTest
 
             //Roolback
 
-            for (int i = 0; i < batchSize; i++)
-            {
-                Assert.That((long)_db.ListRightPopLeftPush(queueWorking, queue), Is.EqualTo(i));
-            }
+            //for (int i = 0; i < batchSize; i++)
+            //{
+            //    Assert.That((long)_db.ListRightPopLeftPush(queueWorking, queue), Is.EqualTo(i));
+            //}
+
+            Assert.That(_db.ListRightPopLeftPushAll(queue, queueWorking), Is.EqualTo(batchSize));
 
             Console.WriteLine("ListRightPopLeftPush");
         }

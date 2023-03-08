@@ -30,6 +30,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Lua\ListMoveAll.lua" />
+    <None Remove="Lua\ListRightPopLeftPushAll.lua" />
+    <None Remove="Lua\QueueRollback.lua" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Lua\ListRightPopLeftPushAll.lua" />
+    <EmbeddedResource Include="Lua\ListMoveAll.lua" />
+    <EmbeddedResource Include="Lua\QueueRollback.lua" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="Readme.md" Pack="true" PackagePath="\" />
     <None Include="..\Icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
