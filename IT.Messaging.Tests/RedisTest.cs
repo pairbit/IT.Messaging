@@ -43,10 +43,12 @@ public class RedisTest
             {
                 Assert.That((long)_db.ListMove(queueWorking, queue, ListSide.Left, ListSide.Right), Is.EqualTo(i));
             }
+
+            Console.WriteLine("ListMove");
         }
         catch (RedisServerException ex)
         {
-            Console.WriteLine(ex.Message);
+            Assert.That(ex.Message, Is.EqualTo("ERR unknown command 'LMOVE'"));
 
             for (int i = 0; i < batchSize; i++)
             {
@@ -59,9 +61,9 @@ public class RedisTest
             {
                 Assert.That((long)_db.ListRightPopLeftPush(queueWorking, queue), Is.EqualTo(i));
             }
-        }
 
-        
+            Console.WriteLine("ListRightPopLeftPush");
+        }
 
         //Assert.That(_db.ListRightPopLeftPush("q1", "q1-working"), Is.EqualTo(0));
     }
