@@ -7,12 +7,14 @@ namespace IT.Messaging.Redis.Internal;
 internal static class Lua
 {
     internal static readonly string QueueRollback;
+    internal static readonly string ListMoveAll;
 
     static Lua()
     {
         var assembly = Assembly.GetExecutingAssembly();
 
         QueueRollback = assembly.GetLua("QueueRollback");
+        ListMoveAll = assembly.GetLua("ListMoveAll");
     }
 
     private static string GetLua(this Assembly assembly, string name)

@@ -1,7 +1,6 @@
 ﻿using StackExchange.Redis;
 using System;
 using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -85,6 +84,30 @@ public class MemoryQueue : IMemoryQueue
             throw new MessagingException(null, ex);
         }
     }
+
+    //public ReadOnlyMemory<byte> Move(string sourceQueue, string destinationQueue, QueueSide sourceSide, QueueSide destinationSide)
+    //{
+    //    try
+    //    {
+    //        return _db.ListMove(GetRedisKey(sourceQueue), GetRedisKey(destinationQueue), (ListSide)(int)sourceSide, (ListSide)(int)destinationSide);
+    //    }
+    //    catch (RedisException ex)
+    //    {
+    //        throw new MessagingException(null, ex);
+    //    }
+    //}
+
+    //public long MoveAll(string sourceQueue, string destinationQueue, QueueSide sourceSide, QueueSide destinationSide)
+    //{
+    //    try
+    //    {
+    //        return _db.ListMoveAll(GetRedisKey(sourceQueue), GetRedisKey(destinationQueue), (ListSide)(int)sourceSide, (ListSide)(int)destinationSide);
+    //    }
+    //    catch (RedisException ex)
+    //    {
+    //        throw new MessagingException(null, ex);
+    //    }
+    //}
 
     public long Delete(ReadOnlyMemory<byte> message, long count = 0, string? queue = null)
     {

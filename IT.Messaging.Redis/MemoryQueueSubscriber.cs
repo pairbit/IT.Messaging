@@ -172,10 +172,11 @@ public class MemoryQueueSubscriber : IMemorySubscriber
     {
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
+        var db = _db;
 
         while (!token.IsCancellationRequested)
         {
-            var message = await _db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+            var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
 
             if (message.IsNull)
             {
@@ -183,19 +184,19 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             }
             else
             {
-                var isDelete = true;
+                var status = true;
                 try
                 {
-                    isDelete = await handler(message, queue, token).ConfigureAwait(false);
+                    status = await handler(message, queue, token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
-                    isDelete = false;
+                    status = false;
                 }
                 finally
                 {
-                    if (isDelete) await _db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
-                    else await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
+                    if (status) await db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
+                    else await db.QueueRollbackAsync(queueWorkingKey, queueKey).ConfigureAwait(false);
                 }
             }
         }
@@ -206,12 +207,13 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
+        var db = _db;
 
         while (!token.IsCancellationRequested)
         {
             for (int i = 0; i < batchSize; i++)
             {
-                var message = await _db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+                var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
 
                 if (message.IsNull) break;
 
@@ -224,24 +226,21 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             }
             else
             {
-                var isDelete = Batch.True;
+                var status = Batch.True;
                 try
                 {
-                    isDelete = await batchHandler(batch, queue, token).ConfigureAwait(false);
+                    status = await batchHandler(batch, queue, token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
-                    isDelete = Batch.False;
+                    status = Batch.False;
                 }
                 finally
                 {
-                    if (ReferenceEquals(isDelete, Batch.True)) await _db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
-                    else if (ReferenceEquals(isDelete, Batch.False)) await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
-                    else
-                    {
-                        throw new NotImplementedException();
-                        //await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
-                    }
+                    if (ReferenceEquals(status, Batch.True)) await db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
+                    else if (ReferenceEquals(status, Batch.False)) await db.QueueRollbackAsync(queueWorkingKey, queueKey).ConfigureAwait(false);
+                    else await db.QueueRollbackAsync(queueWorkingKey, queueKey, status).ConfigureAwait(false);
+
                     batch.Clear();
                 }
             }
@@ -253,12 +252,13 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
+        var db = _db;
 
         while (!token.IsCancellationRequested)
         {
             for (int i = 0; i < batchSize; i++)
             {
-                var message = await _db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+                var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
 
                 if (message.IsNull) break;
 
@@ -273,41 +273,38 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             }
             else if (len == 1)
             {
-                var isDelete = true;
+                var status = true;
                 try
                 {
-                    isDelete = await handler(batch[0], queue, token).ConfigureAwait(false);
+                    status = await handler(batch[0], queue, token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
-                    isDelete = false;
+                    status = false;
                 }
                 finally
                 {
-                    if (isDelete) await _db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
-                    else await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
+                    if (status) await _db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
+                    else await db.QueueRollbackAsync(queueWorkingKey, queueKey).ConfigureAwait(false);
                 }
             }
             else
             {
-                var isDelete = Batch.True;
+                var status = Batch.True;
                 try
                 {
-                    isDelete = await batchHandler(batch, queue, token).ConfigureAwait(false);
+                    status = await batchHandler(batch, queue, token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
-                    isDelete = Batch.False;
+                    status = Batch.False;
                 }
                 finally
                 {
-                    if (ReferenceEquals(isDelete, Batch.True)) await _db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
-                    else if (ReferenceEquals(isDelete, Batch.False)) await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
-                    else
-                    {
-                        throw new NotImplementedException();
-                        //await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
-                    }
+                    if (ReferenceEquals(status, Batch.True)) await db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
+                    else if (ReferenceEquals(status, Batch.False)) await db.QueueRollbackAsync(queueWorkingKey, queueKey).ConfigureAwait(false);
+                    else await db.QueueRollbackAsync(queueWorkingKey, queueKey, status).ConfigureAwait(false);
+                    
                     batch.Clear();
                 }
             }
@@ -318,10 +315,11 @@ public class MemoryQueueSubscriber : IMemorySubscriber
     {
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
+        var db = _db;
 
         while (!token.IsCancellationRequested)
         {
-            var message = await _db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+            var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
 
             if (message.IsNull)
             {
@@ -329,19 +327,19 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             }
             else
             {
-                var isDelete = true;
+                var status = true;
                 try
                 {
-                    isDelete = handler(message, queue, token);
+                    status = handler(message, queue, token);
                 }
                 catch (OperationCanceledException)
                 {
-                    isDelete = false;
+                    status = false;
                 }
                 finally
                 {
-                    if (isDelete) await _db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
-                    else await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
+                    if (status) await db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
+                    else await db.QueueRollbackAsync(queueWorkingKey, queueKey).ConfigureAwait(false);
                 }
             }
         }
@@ -352,12 +350,13 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
+        var db = _db;
 
         while (!token.IsCancellationRequested)
         {
             for (int i = 0; i < batchSize; i++)
             {
-                var message = await _db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+                var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
 
                 if (message.IsNull) break;
 
@@ -370,24 +369,21 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             }
             else
             {
-                var isDelete = Batch.True;
+                var status = Batch.True;
                 try
                 {
-                    isDelete = batchHandler(batch, queue, token);
+                    status = batchHandler(batch, queue, token);
                 }
                 catch (OperationCanceledException)
                 {
-                    isDelete = Batch.False;
+                    status = Batch.False;
                 }
                 finally
                 {
-                    if (ReferenceEquals(isDelete, Batch.True)) await _db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
-                    else if (ReferenceEquals(isDelete, Batch.False)) await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
-                    else
-                    {
-                        throw new NotImplementedException();
-                        //await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
-                    }
+                    if (ReferenceEquals(status, Batch.True)) await db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
+                    else if (ReferenceEquals(status, Batch.False)) await db.QueueRollbackAsync(queueWorkingKey, queueKey).ConfigureAwait(false);
+                    else await db.QueueRollbackAsync(queueWorkingKey, queueKey, status).ConfigureAwait(false);
+                    
                     batch.Clear();
                 }
             }
@@ -399,12 +395,13 @@ public class MemoryQueueSubscriber : IMemorySubscriber
         var queueKey = GetQueueKey(queue);
         var queueWorkingKey = GetQueueWorkingKey(queue);
         var batch = new List<ReadOnlyMemory<byte>>(batchSize);
+        var db = _db;
 
         while (!token.IsCancellationRequested)
         {
             for (int i = 0; i < batchSize; i++)
             {
-                var message = await _db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
+                var message = await db.ListRightPopLeftPushAsync(queueKey, queueWorkingKey).ConfigureAwait(false);
 
                 if (message.IsNull) break;
 
@@ -419,41 +416,37 @@ public class MemoryQueueSubscriber : IMemorySubscriber
             }
             else if (len == 1)
             {
-                var isDelete = true;
+                var status = true;
                 try
                 {
-                    isDelete = handler(batch[0], queue, token);
+                    status = handler(batch[0], queue, token);
                 }
                 catch (OperationCanceledException)
                 {
-                    isDelete = false;
+                    status = false;
                 }
                 finally
                 {
-                    if (isDelete) await _db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
-                    else await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
+                    if (status) await db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
+                    else await db.QueueRollbackAsync(queueWorkingKey, queueKey).ConfigureAwait(false);
                 }
             }
             else
             {
-                var isDelete = Batch.True;
+                var status = Batch.True;
                 try
                 {
-                    isDelete = batchHandler(batch, queue, token);
+                    status = batchHandler(batch, queue, token);
                 }
                 catch (OperationCanceledException)
                 {
-                    isDelete = Batch.False;
+                    status = Batch.False;
                 }
                 finally
                 {
-                    if (ReferenceEquals(isDelete, Batch.True)) await _db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
-                    else if (ReferenceEquals(isDelete, Batch.False)) await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
-                    else
-                    {
-                        throw new NotImplementedException();
-                        //await _db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { queueWorkingKey, queueKey }).ConfigureAwait(false);
-                    }
+                    if (ReferenceEquals(status, Batch.True)) await db.KeyDeleteAsync(queueWorkingKey).ConfigureAwait(false);
+                    else if (ReferenceEquals(status, Batch.False)) await db.QueueRollbackAsync(queueWorkingKey, queueKey).ConfigureAwait(false);
+                    else await db.QueueRollbackAsync(queueWorkingKey, queueKey, status).ConfigureAwait(false);
                     batch.Clear();
                 }
             }
