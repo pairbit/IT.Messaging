@@ -1,6 +1,7 @@
 ﻿using IT.Messaging.Generic;
 using StackExchange.Redis;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,7 +37,7 @@ public class PubSubPublisher<T> : IPublisher<T>
         }
     }
 
-    public long Publish(T[] messages, string? key = null)
+    public long Publish(IEnumerable<T> messages, string? key = null)
     {
         try
         {
@@ -60,7 +61,7 @@ public class PubSubPublisher<T> : IPublisher<T>
         }
     }
 
-    public Task<long> PublishAsync(T[] messages, string? key = null)
+    public Task<long> PublishAsync(IEnumerable<T> messages, string? key = null)
     {
         try
         {

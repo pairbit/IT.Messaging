@@ -1,8 +1,10 @@
-﻿namespace IT.Messaging;
+﻿using System.Collections.Generic;
+
+namespace IT.Messaging;
 
 public interface IQueueCleaner : IAsyncQueueCleaner
 {
     bool Clean(string? queue = null);
 
-    long CleanAll(string[]? queues = null);
+    long CleanAll(IEnumerable<string>? queues = null);
 }

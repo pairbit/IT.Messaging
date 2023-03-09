@@ -31,16 +31,11 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
-    public long CleanAll(string[]? queues = null)
+    public long CleanAll(IEnumerable<string>? queues = null)
     {
         if (queues == null) throw new ArgumentNullException(nameof(queues));
 
-        var keys = new RedisKey[queues.Length];
-
-        for (int i = 0; i < keys.Length; i++)
-        {
-            keys[i] = GetRedisKey(queues[i]);
-        }
+        var keys = ToRedisKeys(queues);
 
         try
         {
@@ -52,16 +47,11 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
-    public Task<long> CleanAllAsync(string[]? queues = null)
+    public Task<long> CleanAllAsync(IEnumerable<string>? queues = null)
     {
         if (queues == null) throw new ArgumentNullException(nameof(queues));
 
-        var keys = new RedisKey[queues.Length];
-
-        for (int i = 0; i < keys.Length; i++)
-        {
-            keys[i] = GetRedisKey(queues[i]);
-        }
+        var keys = ToRedisKeys(queues);
 
         try
         {
@@ -145,16 +135,11 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
-    public long ExistsAll(string[]? queues = null)
+    public long ExistsAll(IEnumerable<string>? queues = null)
     {
         if (queues == null) throw new ArgumentNullException(nameof(queues));
 
-        var keys = new RedisKey[queues.Length];
-
-        for (int i = 0; i < keys.Length; i++)
-        {
-            keys[i] = GetRedisKey(queues[i]);
-        }
+        var keys = ToRedisKeys(queues);
 
         try
         {
@@ -166,16 +151,11 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
-    public Task<long> ExistsAllAsync(string[]? queues = null)
+    public Task<long> ExistsAllAsync(IEnumerable<string>? queues = null)
     {
         if (queues == null) throw new ArgumentNullException(nameof(queues));
 
-        var keys = new RedisKey[queues.Length];
-
-        for (int i = 0; i < keys.Length; i++)
-        {
-            keys[i] = GetRedisKey(queues[i]);
-        }
+        var keys = ToRedisKeys(queues);
 
         try
         {
@@ -409,6 +389,74 @@ public class MemoryQueue : IMemoryQueue
     }
 
     #endregion Protected Methods
+
+    private RedisKey[] ToRedisKeys(IEnumerable<string> keys)
+    {
+        RedisKey[] redisKeys;
+
+        if (keys is IReadOnlyList<string> readOnlyList)
+        {
+            redisKeys = new RedisKey[readOnlyList.Count];
+
+            for (int i = 0; i < redisKeys.Length; i++)
+            {
+                redisKeys[i] = GetRedisKey(readOnlyList[i]);
+            }
+        }
+        else if (keys is IList<string> list)
+        {
+            redisKeys = new RedisKey[list.Count];
+
+            for (int i = 0; i < redisKeys.Length; i++)
+            {
+                redisKeys[i] = GetRedisKey(list[i]);
+            }
+        }
+        else if (keys is IReadOnlyCollection<string> readOnlyCollection)
+        {
+            redisKeys = new RedisKey[readOnlyCollection.Count];
+
+            var i = 0;
+
+            foreach (var key in keys)
+            {
+                redisKeys[i++] = GetRedisKey(key);
+            }
+        }
+        else if (keys is ICollection<string> keyCollection)
+        {
+            redisKeys = new RedisKey[keyCollection.Count];
+
+            var i = 0;
+
+            foreach (var key in keys)
+            {
+                redisKeys[i++] = GetRedisKey(key);
+            }
+        }
+        //else if (keys is ICollection collection)
+        //{
+        //    redisKeys = new RedisKey[collection.Count];
+
+        //    var i = 0;
+
+        //    foreach (var key in keys)
+        //    {
+        //        redisKeys[i++] = key;
+        //    }
+        //}
+        else
+        {
+            var redisKeyList = new List<RedisKey>();
+            foreach (var key in keys)
+            {
+                redisKeyList.Add(key);
+            }
+            redisKeys = redisKeyList.ToArray();
+        }
+
+        return redisKeys;
+    }
 
     private static RedisValue[] ToRedisValues(IEnumerable<ReadOnlyMemory<byte>> messages)
     {

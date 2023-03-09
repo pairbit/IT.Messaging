@@ -20,12 +20,12 @@ public class MemoryDelayedQueue : IMemoryDelayedQueue
         throw new NotImplementedException();
     }
 
-    public long CleanAll(string[]? queues = null)
+    public long CleanAll(IEnumerable<string>? queues = null)
     {
         throw new NotImplementedException();
     }
 
-    public Task<long> CleanAllAsync(string[]? queues = null)
+    public Task<long> CleanAllAsync(IEnumerable<string>? queues = null)
     {
         throw new NotImplementedException();
     }
@@ -100,12 +100,12 @@ public class MemoryDelayedQueue : IMemoryDelayedQueue
         throw new NotImplementedException();
     }
 
-    public long ExistsAll(string[]? queues = null)
+    public long ExistsAll(IEnumerable<string>? queues = null)
     {
         throw new NotImplementedException();
     }
 
-    public Task<long> ExistsAllAsync(string[]? queues = null)
+    public Task<long> ExistsAllAsync(IEnumerable<string>? queues = null)
     {
         throw new NotImplementedException();
     }
