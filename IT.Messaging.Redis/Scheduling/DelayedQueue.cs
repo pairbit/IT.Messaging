@@ -47,7 +47,17 @@ public class DelayedQueue : MemoryDelayedQueue, IDelayedQueue
         throw new NotImplementedException();
     }
 
+    public long Delete<T>(IEnumerable<T> messages, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<bool> DeleteAsync<T>(T message, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<long> DeleteAsync<T>(IEnumerable<T> messages, string? queue = null)
     {
         throw new NotImplementedException();
     }
@@ -57,7 +67,17 @@ public class DelayedQueue : MemoryDelayedQueue, IDelayedQueue
         throw new NotImplementedException();
     }
 
+    public long[] GetDelay<T>(IEnumerable<T> messages, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<long> GetDelayAsync<T>(T message, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<long[]> GetDelayAsync<T>(IEnumerable<T> messages, string? queue = null)
     {
         throw new NotImplementedException();
     }

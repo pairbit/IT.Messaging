@@ -80,7 +80,17 @@ public class MemoryDelayedQueue : IMemoryDelayedQueue
         throw new NotImplementedException();
     }
 
+    public long Delete(IEnumerable<ReadOnlyMemory<byte>> messages, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<bool> DeleteAsync(ReadOnlyMemory<byte> message, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<long> DeleteAsync(IEnumerable<ReadOnlyMemory<byte>> messages, string? queue = null)
     {
         throw new NotImplementedException();
     }
@@ -110,7 +120,17 @@ public class MemoryDelayedQueue : IMemoryDelayedQueue
         throw new NotImplementedException();
     }
 
+    public long[] GetDelay(IEnumerable<ReadOnlyMemory<byte>> messages, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<long> GetDelayAsync(ReadOnlyMemory<byte> message, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<long[]> GetDelayAsync(IEnumerable<ReadOnlyMemory<byte>> messages, string? queue = null)
     {
         throw new NotImplementedException();
     }

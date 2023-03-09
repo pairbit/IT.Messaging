@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace IT.Messaging.Scheduling;
 
@@ -9,4 +10,6 @@ public interface IMemoryDelayedQueue :
     IDelayedQueueCleaner
 {
     bool Delete(ReadOnlyMemory<byte> message, string? queue = null);
+
+    long Delete(IEnumerable<ReadOnlyMemory<byte>> messages, string? queue = null);
 }
