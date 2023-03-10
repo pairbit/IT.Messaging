@@ -36,15 +36,17 @@ public class MemoryQueueTest
 
         Assert.That(_queue.Delete(GetMessage(0)), Is.EqualTo(1));
 
-        Assert.That(_queue.Delete(GetMessageArray(1, 2, 3)), Is.EqualTo(4));
+        //Assert.That(_queue.Delete(GetMessageArray(1, 2, 3)), Is.EqualTo(4));
 
         //Assert.That(_queue.Delete(GetMessageList(1, 2, 3)), Is.EqualTo(4));
 
         //Assert.That(_queue.Delete(GetMessageReadOnlyCollection(1, 2, 3)), Is.EqualTo(4));
 
+        //Assert.That(_queue.Delete(GetMessageCollectionGeneric(1, 2, 3)), Is.EqualTo(4));
+
         //Assert.That(_queue.Delete(GetMessageCollection(1, 2, 3)), Is.EqualTo(4));
 
-        //Assert.That(_queue.Delete(GetMessageEnumerable(1, 2, 3)), Is.EqualTo(4));
+        Assert.That(_queue.Delete(GetMessageEnumerable(1, 2, 3)), Is.EqualTo(4));
 
         Assert.False(_queue.Exists());
     }
@@ -61,6 +63,8 @@ public class MemoryQueueTest
     private static IEnumerable<ReadOnlyMemory<byte>> GetMessageList(params int[] keys) => new MemoryList(GetMessageEnumerable(keys).ToList());
 
     private static IEnumerable<ReadOnlyMemory<byte>> GetMessageReadOnlyCollection(params int[] keys) => new MemoryReadOnlyCollection(GetMessageEnumerable(keys).ToList());
+
+    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageCollectionGeneric(params int[] keys) => new MemoryCollectionGeneric(GetMessageEnumerable(keys).ToList());
 
     private static IEnumerable<ReadOnlyMemory<byte>> GetMessageCollection(params int[] keys) => new MemoryCollection(GetMessageEnumerable(keys).ToList());
 
@@ -149,11 +153,11 @@ public class MemoryQueueTest
         }
     }
 
-    private class MemoryCollection : ICollection<ReadOnlyMemory<byte>>
+    private class MemoryCollectionGeneric : ICollection<ReadOnlyMemory<byte>>
     {
         private readonly List<ReadOnlyMemory<byte>> _list;
 
-        public MemoryCollection(List<ReadOnlyMemory<byte>> list)
+        public MemoryCollectionGeneric(List<ReadOnlyMemory<byte>> list)
         {
             _list = list;
         }
@@ -195,6 +199,37 @@ public class MemoryQueueTest
         IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
+        }
+    }
+
+    private class MemoryCollection : ICollection, IEnumerable<ReadOnlyMemory<byte>>
+    {
+        private readonly List<ReadOnlyMemory<byte>> _list;
+
+        public MemoryCollection(List<ReadOnlyMemory<byte>> list)
+        {
+            _list = list;
+        }
+
+        public int Count => _list.Count;
+
+        public bool IsSynchronized => throw new NotImplementedException();
+
+        public object SyncRoot => throw new NotImplementedException();
+
+        public void CopyTo(Array array, int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator<ReadOnlyMemory<byte>> IEnumerable<ReadOnlyMemory<byte>>.GetEnumerator()
+        {
+            return _list.GetEnumerator();
         }
     }
 }
