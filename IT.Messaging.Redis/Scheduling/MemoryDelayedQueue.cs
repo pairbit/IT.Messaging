@@ -35,12 +35,12 @@ public class MemoryDelayedQueue : IMemoryDelayedQueue
         throw new NotImplementedException();
     }
 
-    public long CleanRange(long? minDelay, long? maxDelay, string? queue = null)
+    public long CleanRange(long minDelay, long maxDelay, string? queue = null)
     {
         throw new NotImplementedException();
     }
 
-    public Task<long> CleanRangeAsync(long? minDelay, long? maxDelay, string? queue = null)
+    public Task<long> CleanRangeAsync(long minDelay, long maxDelay, string? queue = null)
     {
         throw new NotImplementedException();
     }
@@ -145,22 +145,32 @@ public class MemoryDelayedQueue : IMemoryDelayedQueue
         throw new NotImplementedException();
     }
 
-    public long GetLengthRange(long? minDelay, long? maxDelay, string? queue = null)
+    public long GetLengthRange(long minDelay, long maxDelay, string? queue = null)
     {
         throw new NotImplementedException();
     }
 
-    public Task<long> GetLengthRangeAsync(long? minDelay, long? maxDelay, string? queue = null)
+    public Task<long> GetLengthRangeAsync(long minDelay, long maxDelay, string? queue = null)
     {
         throw new NotImplementedException();
     }
 
-    public MessageDelay[] GetRange(long? minDelay, long? maxDelay, bool withDelay = false, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
+    public ReadOnlyMemory<byte>[] GetMessageRange(long minDelay, long maxDelay, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
     {
         throw new NotImplementedException();
     }
 
-    public Task<MessageDelay[]> GetRangeAsync(long? minDelay, long? maxDelay, bool withDelay = false, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
+    public Task<ReadOnlyMemory<byte>[]> GetMessageRangeAsync(long minDelay, long maxDelay, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public MessageDelay[] GetRange(long minDelay, long maxDelay, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<MessageDelay[]> GetRangeAsync(long minDelay, long maxDelay, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
     {
         throw new NotImplementedException();
     }

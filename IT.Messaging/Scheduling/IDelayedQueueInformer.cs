@@ -2,5 +2,5 @@
 
 public interface IDelayedQueueInformer : IAsyncDelayedQueueInformer, IQueueInformer
 {
-    long GetLengthRange(long? minDelay, long? maxDelay, string? queue = null);
+    long GetLengthRange(long minDelay, long maxDelay, string? queue = null);
 }

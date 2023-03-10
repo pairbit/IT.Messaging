@@ -82,12 +82,22 @@ public class DelayedQueue : MemoryDelayedQueue, IDelayedQueue
         throw new NotImplementedException();
     }
 
-    public MessageDelay<T>[] GetRange<T>(long? minDelay, long? maxDelay, bool withDelay = false, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
+    public T[] GetMessageRange<T>(long minDelay, long maxDelay, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
     {
         throw new NotImplementedException();
     }
 
-    public Task<MessageDelay<T>[]> GetRangeAsync<T>(long? minDelay, long? maxDelay, bool withDelay = false, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
+    public Task<T[]> GetMessageRangeAsync<T>(long minDelay, long maxDelay, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public MessageDelay<T>[] GetRange<T>(long minDelay, long maxDelay, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<MessageDelay<T>[]> GetRangeAsync<T>(long minDelay, long maxDelay, bool ascending = true, long skip = 0, long take = -1, string? queue = null)
     {
         throw new NotImplementedException();
     }
