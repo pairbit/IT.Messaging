@@ -35,7 +35,7 @@ public class Queue : MemoryQueue, IQueue
 
     public long Delete<T>(IEnumerable<T> messages, long count = 0, string? queue = null)
     {
-        var redisValues = ToRedisValues(messages, _serializer, 1);
+        var redisValues = messages.ToRedisValues(_serializer, 1);
         redisValues[0] = count;
         try
         {
@@ -61,7 +61,7 @@ public class Queue : MemoryQueue, IQueue
 
     public Task<long> DeleteAsync<T>(IEnumerable<T> messages, long count = 0, string? queue = null)
     {
-        var redisValues = ToRedisValues(messages, _serializer, 1);
+        var redisValues = messages.ToRedisValues(_serializer, 1);
         redisValues[0] = count;
         try
         {
@@ -118,7 +118,7 @@ public class Queue : MemoryQueue, IQueue
         if (messages == null) throw new ArgumentNullException(nameof(messages));
 
         var redisKey = GetQueueKey(key, out var leftPush);
-        var redisValues = ToRedisValues(messages, _serializer);
+        var redisValues = messages.ToRedisValues(_serializer);
         try
         {
             return leftPush ? _db.ListLeftPush(redisKey, redisValues) : _db.ListRightPush(redisKey, redisValues);
@@ -148,7 +148,7 @@ public class Queue : MemoryQueue, IQueue
         if (messages == null) throw new ArgumentNullException(nameof(messages));
 
         var redisKey = GetQueueKey(key, out var leftPush);
-        var redisValues = ToRedisValues(messages, _serializer);
+        var redisValues = messages.ToRedisValues(_serializer);
         try
         {
             return leftPush ? _db.ListLeftPushAsync(redisKey, redisValues) : _db.ListRightPushAsync(redisKey, redisValues);
@@ -168,73 +168,4 @@ public class Queue : MemoryQueue, IQueue
     public Task SubscribeAsync<T>(AsyncHandler<T>? handler, AsyncBatchHandler<T>? batchHandler = null, string? key = null) => _subscriber.SubscribeAsync(handler, batchHandler, key);
 
     #endregion ISubscriber
-
-    private static RedisValue[] ToRedisValues<T>(IEnumerable<T> messages, IRedisValueSerializer serializer, int index = 0)
-    {
-        RedisValue[] redisValues;
-
-        if (messages is IReadOnlyList<T> readOnlyList)
-        {
-            redisValues = new RedisValue[readOnlyList.Count + index];
-
-            for (int i = index; i < redisValues.Length; i++)
-            {
-                redisValues[i] = serializer.Serialize(readOnlyList[i]);
-            }
-        }
-        else if (messages is IList<T> list)
-        {
-            redisValues = new RedisValue[list.Count + index];
-
-            for (int i = index; i < redisValues.Length; i++)
-            {
-                redisValues[i] = serializer.Serialize(list[i]);
-            }
-        }
-        else if (messages is IReadOnlyCollection<T> readOnlyCollection)
-        {
-            redisValues = new RedisValue[readOnlyCollection.Count + index];
-
-            var i = index;
-
-            foreach (var message in messages)
-            {
-                redisValues[i++] = serializer.Serialize(message);
-            }
-        }
-        else if (messages is ICollection<T> messageCollection)
-        {
-            redisValues = new RedisValue[messageCollection.Count + index];
-
-            var i = index;
-
-            foreach (var message in messages)
-            {
-                redisValues[i++] = serializer.Serialize(message);
-            }
-        }
-        //else if (messages is ICollection collection)
-        //{
-        //    redisValues = new RedisValue[collection.Count+ index];
-
-        //    var i = index;
-
-        //    foreach (var message in messages)
-        //    {
-        //        redisValues[i++] = serializer.Serialize(message);
-        //    }
-        //}
-        else
-        {
-            var redisValueList = new List<RedisValue>();
-            foreach (var message in messages)
-            {
-                redisValueList.Add(serializer.Serialize(message));
-            }
-            redisValues = new RedisValue[redisValueList.Count + index];
-            redisValueList.CopyTo(redisValues, index);
-        }
-
-        return redisValues;
-    }
 }
