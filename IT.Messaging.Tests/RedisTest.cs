@@ -76,7 +76,7 @@ public class RedisTest
     }
 
     [Test]
-    public void ListRemoveAllTest()
+    public void ListRemoveAllTest1()
     {
         RedisKey list = "mylist";
 
@@ -85,6 +85,48 @@ public class RedisTest
         Assert.That(_db.ListLeftPush(list, new RedisValue[] { 0, 1, 2, 3, 2, 1, 0 }), Is.EqualTo(7));
 
         Assert.That(_db.ListRemoveAll(list, new RedisValue[] { 0, 1, 2 }), Is.EqualTo(4));
+
+        Assert.That(_db.ListLength(list), Is.EqualTo(3));
+    }
+
+    [Test]
+    public void ListRemoveAllTest2()
+    {
+        RedisKey list = "mylist";
+
+        _db.KeyDelete(list);
+
+        Assert.That(_db.ListLeftPush(list, new RedisValue[] { 0, 1, 2, 3, 2, 1, 0 }), Is.EqualTo(7));
+
+        Assert.That(_db.ListRemoveAll(list, new RedisValue[] { 1, 1, 2 }), Is.EqualTo(2));
+
+        Assert.That(_db.ListLength(list), Is.EqualTo(5));
+    }
+
+    [Test]
+    public void ListRemoveAllTest3()
+    {
+        RedisKey list = "mylist";
+
+        _db.KeyDelete(list);
+
+        Assert.That(_db.ListLeftPush(list, new RedisValue[] { 0, 1, 2, 3, 2, 1, 0 }), Is.EqualTo(7));
+
+        Assert.That(_db.ListRemoveAll(list, new RedisValue[] { -1, 1, 2 }), Is.EqualTo(2));
+
+        Assert.That(_db.ListLength(list), Is.EqualTo(5));
+    }
+
+    [Test]
+    public void ListRemoveAllTest4()
+    {
+        RedisKey list = "mylist";
+
+        _db.KeyDelete(list);
+
+        Assert.That(_db.ListLeftPush(list, new RedisValue[] { 0, 1, 2, 3, 2, 1, 0 }), Is.EqualTo(7));
+
+        Assert.That(_db.ListRemoveAll(list, new RedisValue[] { -2, 1, 2 }), Is.EqualTo(4));
 
         Assert.That(_db.ListLength(list), Is.EqualTo(3));
     }
