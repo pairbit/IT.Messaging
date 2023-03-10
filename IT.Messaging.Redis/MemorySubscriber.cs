@@ -9,7 +9,7 @@ namespace IT.Messaging.Redis;
 
 internal delegate Task<RedisValue> AsyncDequeue(IDatabaseAsync db, RedisKey source, RedisKey destination);
 
-public class MemoryQueueSubscriber : IMemorySubscriber
+public class MemorySubscriber : IMemorySubscriber
 {
     private const string QueueDefault = "default";
     private readonly IDatabase _db;
@@ -21,7 +21,7 @@ public class MemoryQueueSubscriber : IMemorySubscriber
     private bool? haveMove;
     private AsyncDequeue _dequeueAsync;
 
-    public MemoryQueueSubscriber(IDatabase db, Func<string?, QueueSubscriberConfig> getConfig)
+    public MemorySubscriber(IDatabase db, Func<string?, QueueSubscriberConfig> getConfig)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _getConfig = getConfig;

@@ -496,40 +496,36 @@ public class MemoryQueue : IMemoryQueue
         {
             redisValues = new RedisValue[readOnlyList.Count + index];
 
-            for (int i = index; i < redisValues.Length; i++)
+            for (int i = 0; i < readOnlyList.Count; i++)
             {
-                redisValues[i] = readOnlyList[i];
+                redisValues[i + index] = readOnlyList[i];
             }
         }
         else if (messages is IList<ReadOnlyMemory<byte>> list)
         {
             redisValues = new RedisValue[list.Count + index];
 
-            for (int i = index; i < redisValues.Length; i++)
+            for (int i = 0; i < list.Count; i++)
             {
-                redisValues[i] = list[i];
+                redisValues[i + index] = list[i];
             }
         }
         else if (messages is IReadOnlyCollection<ReadOnlyMemory<byte>> readOnlyCollection)
         {
             redisValues = new RedisValue[readOnlyCollection.Count + index];
 
-            var i = index;
-
             foreach (var message in messages)
             {
-                redisValues[i++] = message;
+                redisValues[index++] = message;
             }
         }
         else if (messages is ICollection<ReadOnlyMemory<byte>> messageCollection)
         {
             redisValues = new RedisValue[messageCollection.Count + index];
 
-            var i = index;
-
             foreach (var message in messages)
             {
-                redisValues[i++] = message;
+                redisValues[index++] = message;
             }
         }
         //else if (messages is ICollection collection)
