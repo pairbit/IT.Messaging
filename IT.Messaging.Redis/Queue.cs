@@ -11,13 +11,16 @@ public class Queue : MemoryQueue, IQueue
 {
     private readonly ISubscriber _subscriber;
     private readonly IRedisValueSerializer _serializer;
+    private readonly IRedisValueDeserializer _deserializer;
 
     public Queue(
         IDatabase db,
         IRedisValueSerializer serializer,
+        IRedisValueDeserializer deserializer,
         ISubscriber subscriber) : base(db, subscriber)
     {
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+        _deserializer = deserializer ?? throw new ArgumentNullException(nameof(deserializer));
         _subscriber = subscriber;
     }
 
@@ -85,11 +88,49 @@ public class Queue : MemoryQueue, IQueue
         }
     }
 
+    public T[] GetRange<T>(long start = 0, long stop = -1, string? queue = null)
+    {
+        try
+        {
+            var redisValues = _db.ListRange(GetRedisKey(queue), start, stop);
+            var messages = new T[redisValues.Length];
+            var deserializer = _deserializer;
+            for (int i = 0; i < messages.Length; i++)
+            {
+                messages[i] = deserializer.Deserialize<T>(in redisValues[i]);
+            }
+            return messages;
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
     public Task<long> GetPositionAsync<T>(T message, long rank = 1, long maxLength = 0, string? queue = null)
     {
         try
         {
             return _db.ListPositionAsync(GetRedisKey(queue), _serializer.Serialize(message), rank, maxLength);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public async Task<T[]> GetRangeAsync<T>(long start = 0, long stop = -1, string? queue = null)
+    {
+        try
+        {
+            var redisValues = await _db.ListRangeAsync(GetRedisKey(queue), start, stop).ConfigureAwait(false);
+            var messages = new T[redisValues.Length];
+            var deserializer = _deserializer;
+            for (int i = 0; i < messages.Length; i++)
+            {
+                messages[i] = deserializer.Deserialize<T>(in redisValues[i]);
+            }
+            return messages;
         }
         catch (RedisException ex)
         {

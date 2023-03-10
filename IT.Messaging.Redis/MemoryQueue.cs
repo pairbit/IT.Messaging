@@ -245,11 +245,47 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
+    public ReadOnlyMemory<byte>[] GetRange(long start = 0, long stop = -1, string? queue = null)
+    {
+        try
+        {
+            var redisValues = _db.ListRange(GetRedisKey(queue), start, stop);
+            var messages = new ReadOnlyMemory<byte>[redisValues.Length];
+            for (int i = 0; i < messages.Length; i++)
+            {
+                messages[i] = redisValues[i];
+            }
+            return messages;
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
     public Task<long> GetPositionAsync(ReadOnlyMemory<byte> message, long rank = 1, long maxLength = 0, string? queue = null)
     {
         try
         {
             return _db.ListPositionAsync(GetRedisKey(queue), message, rank, maxLength);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public async Task<ReadOnlyMemory<byte>[]> GetRangeAsync(long start = 0, long stop = -1, string? queue = null)
+    {
+        try
+        {
+            var redisValues = await _db.ListRangeAsync(GetRedisKey(queue), start, stop).ConfigureAwait(false);
+            var messages = new ReadOnlyMemory<byte>[redisValues.Length];
+            for (int i = 0; i < messages.Length; i++)
+            {
+                messages[i] = redisValues[i];
+            }
+            return messages;
         }
         catch (RedisException ex)
         {
