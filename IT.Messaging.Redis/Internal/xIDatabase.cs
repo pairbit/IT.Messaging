@@ -48,6 +48,16 @@ public static class xIDatabase
         return db.ScriptEvaluateAsync(Lua.QueueRollback, new RedisKey[] { sourceKey, destinationKey });
     }
 
+    public static async Task<long> ListRemoveAllAsync(this IDatabaseAsync db, RedisKey key, RedisValue[] values, CommandFlags flags = CommandFlags.None)
+    {
+        return (long)await db.ScriptEvaluateAsync(Lua.ListRemoveAll, new RedisKey[] { key }, values, flags).ConfigureAwait(false);
+    }
+
+    public static long ListRemoveAll(this IDatabase db, RedisKey key, RedisValue[] values, CommandFlags flags = CommandFlags.None)
+    {
+        return (long)db.ScriptEvaluate(Lua.ListRemoveAll, new RedisKey[] { key }, values, flags);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static RedisValue[] ToRedisValue(ListSide sourceSide, ListSide destinationSide)
     {

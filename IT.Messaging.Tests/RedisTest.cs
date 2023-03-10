@@ -75,5 +75,17 @@ public class RedisTest
         //Assert.That(_db.ListRightPopLeftPush("q1", "q1-working"), Is.EqualTo(0));
     }
 
+    [Test]
+    public void ListRemoveAllTest()
+    {
+        RedisKey list = "mylist";
 
+        _db.KeyDelete(list);
+
+        Assert.That(_db.ListLeftPush(list, new RedisValue[] { 0, 1, 2, 3, 2, 1, 0 }), Is.EqualTo(7));
+
+        Assert.That(_db.ListRemoveAll(list, new RedisValue[] { 0, 1, 2 }), Is.EqualTo(4));
+
+        Assert.That(_db.ListLength(list), Is.EqualTo(3));
+    }
 }

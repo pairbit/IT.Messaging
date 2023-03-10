@@ -9,6 +9,7 @@ internal static class Lua
     internal static readonly string QueueRollback;
     internal static readonly string ListMoveAll;
     internal static readonly string ListRightPopLeftPushAll;
+    internal static readonly string ListRemoveAll;//LMREM
 
     static Lua()
     {
@@ -17,6 +18,7 @@ internal static class Lua
         QueueRollback = assembly.GetLua("QueueRollback");
         ListMoveAll = assembly.GetLua("ListMoveAll");
         ListRightPopLeftPushAll = assembly.GetLua("ListRightPopLeftPushAll");
+        ListRemoveAll = assembly.GetLua("ListRemoveAll");
     }
 
     private static string GetLua(this Assembly assembly, string name)

@@ -1,10 +1,11 @@
 ﻿using StackExchange.Redis;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace IT.Messaging.Redis;
+
+using Internal;
 
 public class Queue : MemoryQueue, IQueue
 {
@@ -32,11 +33,39 @@ public class Queue : MemoryQueue, IQueue
         }
     }
 
+    public long Delete<T>(IEnumerable<T> messages, long count = 0, string? queue = null)
+    {
+        var redisValues = ToRedisValues(messages, _serializer, 1);
+        redisValues[0] = count;
+        try
+        {
+            return _db.ListRemoveAll(GetRedisKey(queue), redisValues);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
     public Task<long> DeleteAsync<T>(T message, long count = 0, string? queue = null)
     {
         try
         {
             return _db.ListRemoveAsync(GetRedisKey(queue), _serializer.Serialize(message), count);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public Task<long> DeleteAsync<T>(IEnumerable<T> messages, long count = 0, string? queue = null)
+    {
+        var redisValues = ToRedisValues(messages, _serializer, 1);
+        redisValues[0] = count;
+        try
+        {
+            return _db.ListRemoveAllAsync(GetRedisKey(queue), redisValues);
         }
         catch (RedisException ex)
         {
@@ -140,33 +169,33 @@ public class Queue : MemoryQueue, IQueue
 
     #endregion ISubscriber
 
-    private static RedisValue[] ToRedisValues<T>(IEnumerable<T> messages, IRedisValueSerializer serializer)
+    private static RedisValue[] ToRedisValues<T>(IEnumerable<T> messages, IRedisValueSerializer serializer, int index = 0)
     {
         RedisValue[] redisValues;
 
         if (messages is IReadOnlyList<T> readOnlyList)
         {
-            redisValues = new RedisValue[readOnlyList.Count];
+            redisValues = new RedisValue[readOnlyList.Count + index];
 
-            for (int i = 0; i < redisValues.Length; i++)
+            for (int i = index; i < redisValues.Length; i++)
             {
                 redisValues[i] = serializer.Serialize(readOnlyList[i]);
             }
         }
         else if (messages is IList<T> list)
         {
-            redisValues = new RedisValue[list.Count];
+            redisValues = new RedisValue[list.Count + index];
 
-            for (int i = 0; i < redisValues.Length; i++)
+            for (int i = index; i < redisValues.Length; i++)
             {
                 redisValues[i] = serializer.Serialize(list[i]);
             }
         }
         else if (messages is IReadOnlyCollection<T> readOnlyCollection)
         {
-            redisValues = new RedisValue[readOnlyCollection.Count];
+            redisValues = new RedisValue[readOnlyCollection.Count + index];
 
-            var i = 0;
+            var i = index;
 
             foreach (var message in messages)
             {
@@ -175,9 +204,9 @@ public class Queue : MemoryQueue, IQueue
         }
         else if (messages is ICollection<T> messageCollection)
         {
-            redisValues = new RedisValue[messageCollection.Count];
+            redisValues = new RedisValue[messageCollection.Count + index];
 
-            var i = 0;
+            var i = index;
 
             foreach (var message in messages)
             {
@@ -186,9 +215,9 @@ public class Queue : MemoryQueue, IQueue
         }
         //else if (messages is ICollection collection)
         //{
-        //    redisValues = new RedisValue[collection.Count];
+        //    redisValues = new RedisValue[collection.Count+ index];
 
-        //    var i = 0;
+        //    var i = index;
 
         //    foreach (var message in messages)
         //    {
@@ -202,7 +231,8 @@ public class Queue : MemoryQueue, IQueue
             {
                 redisValueList.Add(serializer.Serialize(message));
             }
-            redisValues = redisValueList.ToArray();
+            redisValues = new RedisValue[redisValueList.Count + index];
+            redisValueList.CopyTo(redisValues, index);
         }
 
         return redisValues;

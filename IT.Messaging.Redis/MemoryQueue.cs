@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace IT.Messaging.Redis;
 
+using Internal;
+
 public class MemoryQueue : IMemoryQueue
 {
     protected readonly IDatabase _db;
@@ -111,11 +113,39 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
+    public long Delete(IEnumerable<ReadOnlyMemory<byte>> messages, long count = 0, string? queue = null)
+    {
+        var redisValues = ToRedisValues(messages, 1);
+        redisValues[0] = count;
+        try
+        {
+            return _db.ListRemoveAll(GetRedisKey(queue), redisValues);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
     public Task<long> DeleteAsync(ReadOnlyMemory<byte> message, long count = 0, string? queue = null)
     {
         try
         {
             return _db.ListRemoveAsync(GetRedisKey(queue), message, count);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public Task<long> DeleteAsync(IEnumerable<ReadOnlyMemory<byte>> messages, long count = 0, string? queue = null)
+    {
+        var redisValues = ToRedisValues(messages, 1);
+        redisValues[0] = count;
+        try
+        {
+            return _db.ListRemoveAllAsync(GetRedisKey(queue), redisValues);
         }
         catch (RedisException ex)
         {
@@ -458,33 +488,33 @@ public class MemoryQueue : IMemoryQueue
         return redisKeys;
     }
 
-    private static RedisValue[] ToRedisValues(IEnumerable<ReadOnlyMemory<byte>> messages)
+    private static RedisValue[] ToRedisValues(IEnumerable<ReadOnlyMemory<byte>> messages, int index = 0)
     {
         RedisValue[] redisValues;
 
         if (messages is IReadOnlyList<ReadOnlyMemory<byte>> readOnlyList)
         {
-            redisValues = new RedisValue[readOnlyList.Count];
+            redisValues = new RedisValue[readOnlyList.Count + index];
 
-            for (int i = 0; i < redisValues.Length; i++)
+            for (int i = index; i < redisValues.Length; i++)
             {
                 redisValues[i] = readOnlyList[i];
             }
         }
         else if (messages is IList<ReadOnlyMemory<byte>> list)
         {
-            redisValues = new RedisValue[list.Count];
+            redisValues = new RedisValue[list.Count + index];
 
-            for (int i = 0; i < redisValues.Length; i++)
+            for (int i = index; i < redisValues.Length; i++)
             {
                 redisValues[i] = list[i];
             }
         }
         else if (messages is IReadOnlyCollection<ReadOnlyMemory<byte>> readOnlyCollection)
         {
-            redisValues = new RedisValue[readOnlyCollection.Count];
+            redisValues = new RedisValue[readOnlyCollection.Count + index];
 
-            var i = 0;
+            var i = index;
 
             foreach (var message in messages)
             {
@@ -493,9 +523,9 @@ public class MemoryQueue : IMemoryQueue
         }
         else if (messages is ICollection<ReadOnlyMemory<byte>> messageCollection)
         {
-            redisValues = new RedisValue[messageCollection.Count];
+            redisValues = new RedisValue[messageCollection.Count + index];
 
-            var i = 0;
+            var i = index;
 
             foreach (var message in messages)
             {
@@ -520,7 +550,8 @@ public class MemoryQueue : IMemoryQueue
             {
                 redisValueList.Add(message);
             }
-            redisValues = redisValueList.ToArray();
+            redisValues = new RedisValue[redisValueList.Count + index];
+            redisValueList.CopyTo(redisValues, index);
         }
 
         return redisValues;
