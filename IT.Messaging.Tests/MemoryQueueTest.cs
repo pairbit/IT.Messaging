@@ -55,18 +55,26 @@ public class MemoryQueueTest
 
     private static ReadOnlyMemory<byte> GetMessage(int key) => BitConverter.GetBytes(key).AsMemory();
 
-    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageEnumerable(params int[] keys)
+    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageEnumerableWithListProvider(params int[] keys)
         => keys.Select(x => (ReadOnlyMemory<byte>)BitConverter.GetBytes(x).AsMemory());
 
-    private static ReadOnlyMemory<byte>[] GetMessageArray(params int[] keys) => GetMessageEnumerable(keys).ToArray();
+    private static ReadOnlyMemory<byte>[] GetMessageArray(params int[] keys) => GetMessageEnumerableWithListProvider(keys).ToArray();
 
-    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageList(params int[] keys) => new MemoryList(GetMessageEnumerable(keys).ToList());
+    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageList(params int[] keys) => new MemoryList(GetMessageEnumerableWithListProvider(keys).ToList());
 
-    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageReadOnlyCollection(params int[] keys) => new MemoryReadOnlyCollection(GetMessageEnumerable(keys).ToList());
+    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageReadOnlyCollection(params int[] keys) => new MemoryReadOnlyCollection(GetMessageEnumerableWithListProvider(keys).ToList());
 
-    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageCollectionGeneric(params int[] keys) => new MemoryCollectionGeneric(GetMessageEnumerable(keys).ToList());
+    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageCollectionGeneric(params int[] keys) => new MemoryCollectionGeneric(GetMessageEnumerableWithListProvider(keys).ToList());
 
-    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageCollection(params int[] keys) => new MemoryCollection(GetMessageEnumerable(keys).ToList());
+    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageCollection(params int[] keys) => new MemoryCollection(GetMessageEnumerableWithListProvider(keys).ToList());
+
+    private static IEnumerable<ReadOnlyMemory<byte>> GetMessageEnumerable(params int[] keys)
+    {
+        foreach (var key in keys)
+        {
+            yield return (ReadOnlyMemory<byte>)BitConverter.GetBytes(key).AsMemory();
+        }
+    }
 
     private class MemoryList : IList<ReadOnlyMemory<byte>>
     {
