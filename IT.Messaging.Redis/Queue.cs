@@ -88,6 +88,19 @@ public class Queue : MemoryQueue, IQueue
         }
     }
 
+    public T? GetByIndex<T>(long index, string? queue = null)
+    {
+        try
+        {
+            var redisValue = _db.ListGetByIndex(GetRedisKey(queue), index);
+            return _deserializer.Deserialize<T?>(in redisValue);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
     public T[] GetRange<T>(long start = 0, long stop = -1, string? queue = null)
     {
         try
@@ -112,6 +125,19 @@ public class Queue : MemoryQueue, IQueue
         try
         {
             return _db.ListPositionAsync(GetRedisKey(queue), _serializer.Serialize(message), rank, maxLength);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public async Task<T?> GetByIndexAsync<T>(long index, string? queue = null)
+    {
+        try
+        {
+            var redisValue = await _db.ListGetByIndexAsync(GetRedisKey(queue), index).ConfigureAwait(false);
+            return _deserializer.Deserialize<T?>(in redisValue);
         }
         catch (RedisException ex)
         {
