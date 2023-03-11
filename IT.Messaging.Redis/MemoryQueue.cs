@@ -269,6 +269,18 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
+    public long[] GetPositions(ReadOnlyMemory<byte> message, long count, long rank = 1, long maxLength = 0, string? queue = null)
+    {
+        try
+        {
+            return _db.ListPositions(GetRedisKey(queue), message, count, rank, maxLength);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
     public ReadOnlyMemory<byte> GetByIndex(long index, string? queue = null)
     {
         try
@@ -304,6 +316,18 @@ public class MemoryQueue : IMemoryQueue
         try
         {
             return _db.ListPositionAsync(GetRedisKey(queue), message, rank, maxLength);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public Task<long[]> GetPositionsAsync(ReadOnlyMemory<byte> message, long count, long rank = 1, long maxLength = 0, string? queue = null)
+    {
+        try
+        {
+            return _db.ListPositionsAsync(GetRedisKey(queue), message, count, rank, maxLength);
         }
         catch (RedisException ex)
         {

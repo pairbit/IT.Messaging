@@ -1,14 +1,17 @@
-﻿//namespace IT.Messaging;
+﻿namespace IT.Messaging;
 
-//public enum QueueSide
-//{
-//    /// <summary>
-//    /// The head of the list.
-//    /// </summary>
-//    Left,
+public readonly record struct QueueSide
+{
+    private readonly string _queue;
+    private readonly Side _side;
 
-//    /// <summary>
-//    /// The tail of the list.
-//    /// </summary>
-//    Right
-//}
+    public string Queue => _queue;
+
+    public Side Side => _side;
+
+    public QueueSide(string queue, Side side)
+    {
+        _queue = queue;
+        _side = side;
+    }
+}
