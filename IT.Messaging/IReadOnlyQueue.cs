@@ -6,5 +6,5 @@ public interface IReadOnlyQueue : IAsyncReadOnlyQueue, IMemoryReadOnlyQueue
 
     T? GetByIndex<T>(long index, string? queue = null);
 
-    T[] GetRange<T>(long start = 0, long stop = -1, string? queue = null);
+    T[] GetRange<T>(long min = 0, long max = -1, string? queue = null);
 }

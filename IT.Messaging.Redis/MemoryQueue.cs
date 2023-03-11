@@ -77,6 +77,30 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
+    public void Trim(long min, long max, string? queue = null)
+    {
+        try
+        {
+            _db.ListTrim(GetRedisKey(queue), min, max);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public Task TrimAsync(long min, long max, string? queue = null)
+    {
+        try
+        {
+            return _db.ListTrimAsync(GetRedisKey(queue), min, max);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
     //public ReadOnlyMemory<byte> Move(string sourceQueue, string destinationQueue, QueueSide sourceSide, QueueSide destinationSide)
     //{
     //    try
@@ -257,11 +281,11 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
-    public ReadOnlyMemory<byte>[] GetRange(long start = 0, long stop = -1, string? queue = null)
+    public ReadOnlyMemory<byte>[] GetRange(long min = 0, long max = -1, string? queue = null)
     {
         try
         {
-            var redisValues = _db.ListRange(GetRedisKey(queue), start, stop);
+            var redisValues = _db.ListRange(GetRedisKey(queue), min, max);
             var messages = new ReadOnlyMemory<byte>[redisValues.Length];
             for (int i = 0; i < messages.Length; i++)
             {
@@ -299,11 +323,11 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
-    public async Task<ReadOnlyMemory<byte>[]> GetRangeAsync(long start = 0, long stop = -1, string? queue = null)
+    public async Task<ReadOnlyMemory<byte>[]> GetRangeAsync(long min = 0, long max = -1, string? queue = null)
     {
         try
         {
-            var redisValues = await _db.ListRangeAsync(GetRedisKey(queue), start, stop).ConfigureAwait(false);
+            var redisValues = await _db.ListRangeAsync(GetRedisKey(queue), min, max).ConfigureAwait(false);
             var messages = new ReadOnlyMemory<byte>[redisValues.Length];
             for (int i = 0; i < messages.Length; i++)
             {

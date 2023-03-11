@@ -101,11 +101,11 @@ public class Queue : MemoryQueue, IQueue
         }
     }
 
-    public T[] GetRange<T>(long start = 0, long stop = -1, string? queue = null)
+    public T[] GetRange<T>(long min = 0, long max = -1, string? queue = null)
     {
         try
         {
-            var redisValues = _db.ListRange(GetRedisKey(queue), start, stop);
+            var redisValues = _db.ListRange(GetRedisKey(queue), min, max);
             var messages = new T[redisValues.Length];
             var deserializer = _deserializer;
             for (int i = 0; i < messages.Length; i++)
@@ -145,11 +145,11 @@ public class Queue : MemoryQueue, IQueue
         }
     }
 
-    public async Task<T[]> GetRangeAsync<T>(long start = 0, long stop = -1, string? queue = null)
+    public async Task<T[]> GetRangeAsync<T>(long min = 0, long max = -1, string? queue = null)
     {
         try
         {
-            var redisValues = await _db.ListRangeAsync(GetRedisKey(queue), start, stop).ConfigureAwait(false);
+            var redisValues = await _db.ListRangeAsync(GetRedisKey(queue), min, max).ConfigureAwait(false);
             var messages = new T[redisValues.Length];
             var deserializer = _deserializer;
             for (int i = 0; i < messages.Length; i++)

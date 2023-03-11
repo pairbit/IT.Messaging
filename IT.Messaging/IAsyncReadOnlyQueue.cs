@@ -8,5 +8,5 @@ public interface IAsyncReadOnlyQueue : IAsyncMemoryReadOnlyQueue
 
     Task<T?> GetByIndexAsync<T>(long index, string? queue = null);
 
-    Task<T[]> GetRangeAsync<T>(long start = 0, long stop = -1, string? queue = null);
+    Task<T[]> GetRangeAsync<T>(long min = 0, long max = -1, string? queue = null);
 }

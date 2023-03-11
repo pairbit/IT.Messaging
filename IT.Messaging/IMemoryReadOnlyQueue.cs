@@ -8,5 +8,5 @@ public interface IMemoryReadOnlyQueue : IAsyncMemoryReadOnlyQueue, IQueueInforme
 
     ReadOnlyMemory<byte> GetByIndex(long index, string? queue = null);
 
-    ReadOnlyMemory<byte>[] GetRange(long start = 0, long stop = -1, string? queue = null);
+    ReadOnlyMemory<byte>[] GetRange(long min = 0, long max = -1, string? queue = null);
 }
