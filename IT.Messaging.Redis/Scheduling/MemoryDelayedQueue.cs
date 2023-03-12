@@ -174,4 +174,14 @@ public class MemoryDelayedQueue : IMemoryDelayedQueue
     {
         throw new NotImplementedException();
     }
+
+    public bool Rename(string newQueue, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> RenameAsync(string newQueue, string? queue = null)
+    {
+        throw new NotImplementedException();
+    }
 }

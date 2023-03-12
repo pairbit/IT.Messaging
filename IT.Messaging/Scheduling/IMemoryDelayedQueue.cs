@@ -7,7 +7,8 @@ public interface IMemoryDelayedQueue :
     IAsyncMemoryDelayedQueue, 
     IMemoryReadOnlyDelayedQueue,
     IMemoryDelayedPublisher,
-    IDelayedQueueCleaner
+    IDelayedQueueCleaner,
+    IQueueMover
 {
     bool Delete(ReadOnlyMemory<byte> message, string? queue = null);
 

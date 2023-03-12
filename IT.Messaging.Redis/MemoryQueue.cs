@@ -101,7 +101,7 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
-    public long ListMoveAll(string destinationQueue, Side destinationSide = Side.Left, Side sourceSide = Side.Right, string? sourceQueue = null)
+    public long MoveAll(string destinationQueue, Side destinationSide = Side.Left, Side sourceSide = Side.Right, string? sourceQueue = null)
     {
         try
         {
@@ -113,7 +113,7 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
-    public Task<long> ListMoveAllAsync(string destinationQueue, Side destinationSide = Side.Left, Side sourceSide = Side.Right, string? sourceQueue = null)
+    public Task<long> MoveAllAsync(string destinationQueue, Side destinationSide = Side.Left, Side sourceSide = Side.Right, string? sourceQueue = null)
     {
         try
         {

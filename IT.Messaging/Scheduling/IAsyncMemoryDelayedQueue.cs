@@ -7,7 +7,8 @@ namespace IT.Messaging.Scheduling;
 public interface IAsyncMemoryDelayedQueue : 
     IAsyncMemoryReadOnlyDelayedQueue, 
     IAsyncMemoryDelayedPublisher,
-    IAsyncDelayedQueueCleaner
+    IAsyncDelayedQueueCleaner,
+    IAsyncQueueMover
 {
     Task<bool> DeleteAsync(ReadOnlyMemory<byte> message, string? queue = null);
 
