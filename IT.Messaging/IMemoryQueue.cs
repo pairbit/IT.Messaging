@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace IT.Messaging;
 
-public interface IMemoryQueue : IAsyncMemoryQueue, IMemoryReadOnlyQueue, IMemoryChannel, IQueueTrimmer, IQueueCleaner
+public interface IMemoryQueue : IAsyncMemoryQueue, IMemoryReadOnlyQueue, IMemoryChannel, IQueueTrimmer, IQueueMover, IQueueCleaner
 {
     //Rename
     //Move

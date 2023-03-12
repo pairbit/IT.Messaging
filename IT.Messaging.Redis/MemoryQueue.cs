@@ -77,6 +77,54 @@ public class MemoryQueue : IMemoryQueue
         }
     }
 
+    public bool Rename(string newQueue, string? queue = null)
+    {
+        try
+        {
+            return _db.KeyRename(GetRedisKey(queue), GetRedisKey(newQueue), When.NotExists);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public Task<bool> RenameAsync(string newQueue, string? queue = null)
+    {
+        try
+        {
+            return _db.KeyRenameAsync(GetRedisKey(queue), GetRedisKey(newQueue), When.NotExists);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public long ListMoveAll(string destinationQueue, Side destinationSide = Side.Left, Side sourceSide = Side.Right, string? sourceQueue = null)
+    {
+        try
+        {
+            return _db.ListMoveAll(GetRedisKey(sourceQueue), GetRedisKey(destinationQueue), (ListSide)(int)sourceSide, (ListSide)(int)destinationSide);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
+    public Task<long> ListMoveAllAsync(string destinationQueue, Side destinationSide = Side.Left, Side sourceSide = Side.Right, string? sourceQueue = null)
+    {
+        try
+        {
+            return _db.ListMoveAllAsync(GetRedisKey(sourceQueue), GetRedisKey(destinationQueue), (ListSide)(int)sourceSide, (ListSide)(int)destinationSide);
+        }
+        catch (RedisException ex)
+        {
+            throw new MessagingException(null, ex);
+        }
+    }
+
     public void Trim(long min, long max, string? queue = null)
     {
         try
@@ -106,18 +154,6 @@ public class MemoryQueue : IMemoryQueue
     //    try
     //    {
     //        return _db.ListMove(GetRedisKey(sourceQueue), GetRedisKey(destinationQueue), (ListSide)(int)sourceSide, (ListSide)(int)destinationSide);
-    //    }
-    //    catch (RedisException ex)
-    //    {
-    //        throw new MessagingException(null, ex);
-    //    }
-    //}
-
-    //public long MoveAll(string sourceQueue, string destinationQueue, QueueSide sourceSide, QueueSide destinationSide)
-    //{
-    //    try
-    //    {
-    //        return _db.ListMoveAll(GetRedisKey(sourceQueue), GetRedisKey(destinationQueue), (ListSide)(int)sourceSide, (ListSide)(int)destinationSide);
     //    }
     //    catch (RedisException ex)
     //    {

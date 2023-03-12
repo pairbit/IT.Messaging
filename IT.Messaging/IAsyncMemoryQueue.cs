@@ -4,11 +4,9 @@ using System.Threading.Tasks;
 
 namespace IT.Messaging;
 
-public interface IAsyncMemoryQueue : IAsyncMemoryReadOnlyQueue, IAsyncQueueTrimmer, IAsyncQueueCleaner, IAsyncMemoryChannel
+public interface IAsyncMemoryQueue : IAsyncMemoryReadOnlyQueue, IAsyncQueueTrimmer, IAsyncQueueMover, IAsyncQueueCleaner, IAsyncMemoryChannel
 {
     //Task<ReadOnlyMemory<byte>> ListMoveAsync(string destinationQueue, Side destinationSide = Side.Left, Side side = Side.Right, string? queue = null);
-
-    //Task<long> ListMoveAllAsync(string destinationQueue, Side destinationSide = Side.Left, Side sourceSide = Side.Right, string? sourceQueue = null);
 
     //Task<long> PushAsync(ReadOnlyMemory<byte> message, Side side = Side.Left, string? queue = null);
 
